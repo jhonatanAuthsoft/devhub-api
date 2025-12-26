@@ -1,15 +1,34 @@
+# Multi-stage build for Spring Boot application
 
-# Use uma imagem Maven para construir o projeto
-FROM eclipse-temurin:17-jdk-alpine
-
-# Defina o diretório de trabalho
+# Stage 1: Build
+FROM maven:3.9-eclipse-temurin-17-alpine AS build
 WORKDIR /app
 
-# Copie o arquivo pom.xml e o diretório src para o contêiner
-COPY target/modelo-0.0.1-SNAPSHOT.jar app.jar
+# Copy pom.xml and download dependencies (cached layer)
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
 
-# Exponha a porta em que a aplicação Spring Boot está configurada para rodar
+# Copy source code and build
+COPY src ./src
+RUN mvn clean package -DskipTests -B
+
+# Stage 2: Runtime
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Copy JAR from build stage
+COPY --from=build /app/target/modelo-0.0.1-SNAPSHOT.jar app.jar
+
+# Expose port
 EXPOSE 8080
 
-# Comando para executar a aplicação
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+
+# Run application
 ENTRYPOINT ["java", "-jar", "app.jar"]

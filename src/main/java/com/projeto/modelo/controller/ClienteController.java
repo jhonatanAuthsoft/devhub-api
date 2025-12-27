@@ -6,6 +6,10 @@ import com.projeto.modelo.model.enums.ClienteStatus;
 import com.projeto.modelo.model.enums.TipoPessoa;
 import com.projeto.modelo.service.ClienteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -64,21 +68,23 @@ public class ClienteController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ClienteResponseDTO>> listarTodos(
+    public ResponseEntity<Page<ClienteResponseDTO>> listarTodos(
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int size,
             @RequestParam(required = false) ClienteStatus status,
             @RequestParam(required = false) TipoPessoa tipo) {
         
-        List<ClienteResponseDTO> response;
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCriacao").descending());
+        Page<ClienteResponseDTO> response;
         
         if (status != null && tipo != null) {
-            // Filtrar por ambos (necessário adicionar método no service)
-            response = clienteService.listarTodos();
+            response = clienteService.listarTodosPaginado(pageable);
         } else if (status != null) {
-            response = clienteService.listarPorStatus(status);
+            response = clienteService.listarPorStatusPaginado(status, pageable);
         } else if (tipo != null) {
-            response = clienteService.listarPorTipo(tipo);
+            response = clienteService.listarPorTipoPaginado(tipo, pageable);
         } else {
-            response = clienteService.listarTodos();
+            response = clienteService.listarTodosPaginado(pageable);
         }
         
         return ResponseEntity.ok(response);

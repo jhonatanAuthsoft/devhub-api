@@ -11,6 +11,8 @@ import com.projeto.modelo.model.enums.TipoPessoa;
 import com.projeto.modelo.model.enums.TipoPessoaVinculo;
 import com.projeto.modelo.repository.ClienteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -136,6 +138,25 @@ public class ClienteService {
             throw new RuntimeException("Cliente não encontrado");
         }
         clienteRepository.deleteById(id);
+    }
+
+    // Métodos paginados
+    @Transactional(readOnly = true)
+    public Page<ClienteResponseDTO> listarTodosPaginado(Pageable pageable) {
+        return clienteRepository.findAll(pageable)
+                .map(this::toResponseDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ClienteResponseDTO> listarPorStatusPaginado(ClienteStatus status, Pageable pageable) {
+        return clienteRepository.findByStatus(status, pageable)
+                .map(this::toResponseDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ClienteResponseDTO> listarPorTipoPaginado(TipoPessoa tipoPessoa, Pageable pageable) {
+        return clienteRepository.findByTipoPessoa(tipoPessoa, pageable)
+                .map(this::toResponseDTO);
     }
 
     private ClienteResponseDTO toResponseDTO(Cliente cliente) {

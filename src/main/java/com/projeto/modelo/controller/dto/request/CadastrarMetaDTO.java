@@ -55,7 +55,7 @@ public record CadastrarMetaDTO(
         if (novembro != null) totalMensal = totalMensal.add(novembro);
         if (dezembro != null) totalMensal = totalMensal.add(dezembro);
 
-        if (totalMensal.compareTo(BigDecimal.ZERO) > 0 && totalMensal.compareTo(valorAnual) != 0) {
+        if (!"LUCRO".equals(categoria) && totalMensal.compareTo(BigDecimal.ZERO) > 0 && totalMensal.compareTo(valorAnual) != 0) {
             throw new ExcecoesCustomizada("A soma das metas mensais deve ser igual ao valor anual", HttpStatus.BAD_REQUEST);
         }
     }

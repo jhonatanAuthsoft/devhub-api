@@ -68,6 +68,12 @@ public class Usuario extends BaseEntity  implements UserDetails, Serializable {
     @Column(name = "estado")
     private String estado;
 
+    @Column(name = "valor_fixo")
+    private java.math.BigDecimal valorFixo;
+
+    @Column(name = "valor_hora")
+    private java.math.BigDecimal valorHora;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + permissao.toString()));

@@ -14,7 +14,9 @@ public record CadastraUsuarioDTO(
         String cep,
         String logradouro,
         String cidade,
-        String estado
+        String estado,
+        java.math.BigDecimal valorFixo,
+        java.math.BigDecimal valorHora
 ) {
     public CadastraUsuarioDTO {
         if (StringUtils.isNullOrEmpty(email)) {

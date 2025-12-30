@@ -24,6 +24,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class UsuarioServiceImp implements UsuarioService {
@@ -92,6 +94,8 @@ public class UsuarioServiceImp implements UsuarioService {
         usuario.setLogradouro(cadastraUsuarioDTO.logradouro());
         usuario.setCidade(cadastraUsuarioDTO.cidade());
         usuario.setEstado(cadastraUsuarioDTO.estado());
+        usuario.setValorFixo(cadastraUsuarioDTO.valorFixo());
+        usuario.setValorHora(cadastraUsuarioDTO.valorHora());
         
         Usuario usuarioSalvo = this.usuarioRepository.save(usuario);
         UsuarioResposeDTO responseDTO = this.usuarioMapper.toResponseDTO(usuarioSalvo);
@@ -124,5 +128,12 @@ public class UsuarioServiceImp implements UsuarioService {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Page<UsuarioResposeDTO> listarUsuariosPaginado(Pageable pageable) {
+        Page<Usuario> usuarios = this.usuarioRepository.findAll(pageable);
+        return usuarios.map(this.usuarioMapper::toResponseDTO);
     }
 }

@@ -23,4 +23,5 @@ public class PessoaRequestDTO {
     private String cargo;
     private Boolean recebeBoleto;
     private Boolean recebeNf;
+    private Boolean recebeContrato;
 }

@@ -1,0 +1,1 @@
+ALTER TABLE pessoa ADD COLUMN recebe_contrato BOOLEAN DEFAULT FALSE;

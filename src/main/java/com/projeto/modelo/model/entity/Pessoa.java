@@ -45,4 +45,8 @@ public class Pessoa extends BaseEntity {
     @Column(name = "recebe_nf")
     @Builder.Default
     private Boolean recebeNf = false;
+
+    @Column(name = "recebe_contrato")
+    @Builder.Default
+    private Boolean recebeContrato = false;
 }

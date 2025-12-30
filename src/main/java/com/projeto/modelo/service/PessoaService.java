@@ -44,6 +44,7 @@ public class PessoaService {
                 .cargo(dto.getCargo())
                 .recebeBoleto(dto.getRecebeBoleto() != null ? dto.getRecebeBoleto() : false)
                 .recebeNf(dto.getRecebeNf() != null ? dto.getRecebeNf() : false)
+                .recebeContrato(dto.getRecebeContrato() != null ? dto.getRecebeContrato() : false)
                 .build();
 
         Pessoa saved = pessoaRepository.save(pessoa);
@@ -56,11 +57,11 @@ public class PessoaService {
                 .orElseThrow(() -> new RuntimeException("Pessoa não encontrada"));
 
         // Validar campos obrigatórios por tipo
-        if (dto.getTipoPessoa() == TipoPessoaVinculo.CONTATO) {
-            if (dto.getCargo() == null || dto.getCargo().trim().isEmpty()) {
-                throw new RuntimeException("Cargo é obrigatório para contatos");
-            }
-        }
+        // if (dto.getTipoPessoa() == TipoPessoaVinculo.CONTATO) {
+        //    if (dto.getCargo() == null || dto.getCargo().trim().isEmpty()) {
+        //        throw new RuntimeException("Cargo é obrigatório para contatos");
+        //    }
+        // }
 
         pessoa.setTipoPessoa(dto.getTipoPessoa());
         pessoa.setNome(dto.getNome());
@@ -69,6 +70,7 @@ public class PessoaService {
         pessoa.setCargo(dto.getCargo());
         pessoa.setRecebeBoleto(dto.getRecebeBoleto() != null ? dto.getRecebeBoleto() : false);
         pessoa.setRecebeNf(dto.getRecebeNf() != null ? dto.getRecebeNf() : false);
+        pessoa.setRecebeContrato(dto.getRecebeContrato() != null ? dto.getRecebeContrato() : false);
 
         Pessoa updated = pessoaRepository.save(pessoa);
         return toResponseDTO(updated);
@@ -135,6 +137,7 @@ public class PessoaService {
                 .cargo(pessoa.getCargo())
                 .recebeBoleto(pessoa.getRecebeBoleto())
                 .recebeNf(pessoa.getRecebeNf())
+                .recebeContrato(pessoa.getRecebeContrato())
                 .dataCriacao(pessoa.getDataCriacao())
                 .dataAtualizacao(pessoa.getDataAtualizacao())
                 .build();

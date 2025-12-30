@@ -25,6 +25,7 @@ public class PessoaResponseDTO {
     private String cargo;
     private Boolean recebeBoleto;
     private Boolean recebeNf;
+    private Boolean recebeContrato;
     
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;

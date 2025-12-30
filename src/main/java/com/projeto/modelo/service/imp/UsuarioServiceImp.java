@@ -78,15 +78,22 @@ public class UsuarioServiceImp implements UsuarioService {
     public UsuarioResposeDTO cadastraUsuario(CadastraUsuarioDTO cadastraUsuarioDTO){
 
         Usuario usuario = new Usuario();
-        String senha = this.gerarSenha();
-        String senhaCriptografada = this.passwordEncoder.encode(senha);
+        String senhaCriptografada = this.passwordEncoder.encode(cadastraUsuarioDTO.senha());
 
         usuario.setEmail(cadastraUsuarioDTO.email());
+        usuario.setNome(cadastraUsuarioDTO.nome());
         usuario.setStatus(UsuarioStatus.ATIVO);
         usuario.setSenha(senhaCriptografada);
         usuario.setPermissao(PermissaoStatus.ADMIN);
+        usuario.setCargo(cadastraUsuarioDTO.cargo());
+        usuario.setTelefone(cadastraUsuarioDTO.telefone());
+        usuario.setChavePix(cadastraUsuarioDTO.chavePix());
+        usuario.setCep(cadastraUsuarioDTO.cep());
+        usuario.setLogradouro(cadastraUsuarioDTO.logradouro());
+        usuario.setCidade(cadastraUsuarioDTO.cidade());
+        usuario.setEstado(cadastraUsuarioDTO.estado());
+        
         Usuario usuarioSalvo = this.usuarioRepository.save(usuario);
-        this.emailService.cadastraUsuario(cadastraUsuarioDTO.email(), senha);
         UsuarioResposeDTO responseDTO = this.usuarioMapper.toResponseDTO(usuarioSalvo);
         return responseDTO;
     }

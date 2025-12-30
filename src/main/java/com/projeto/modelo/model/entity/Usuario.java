@@ -44,6 +44,30 @@ public class Usuario extends BaseEntity  implements UserDetails, Serializable {
     @Enumerated(EnumType.STRING)
     private PermissaoStatus permissao;
 
+    @Column(name = "nome")
+    private String nome;
+
+    @Column(name = "cargo")
+    private String cargo;
+
+    @Column(name = "telefone")
+    private String telefone;
+
+    @Column(name = "chave_pix")
+    private String chavePix;
+
+    @Column(name = "cep")
+    private String cep;
+
+    @Column(name = "logradouro")
+    private String logradouro;
+
+    @Column(name = "cidade")
+    private String cidade;
+
+    @Column(name = "estado")
+    private String estado;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + permissao.toString()));

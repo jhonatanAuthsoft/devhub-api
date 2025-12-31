@@ -67,6 +67,12 @@ public class ClienteController {
         }
     }
 
+    @GetMapping("/ativos")
+    public ResponseEntity<List<ClienteResponseDTO>> listarAtivos() {
+        List<ClienteResponseDTO> response = clienteService.listarPorStatus(ClienteStatus.ATIVO);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     public ResponseEntity<Page<ClienteResponseDTO>> listarTodos(
             @RequestParam(required = false, defaultValue = "0") int page,

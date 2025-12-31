@@ -3,6 +3,7 @@ package com.projeto.modelo.service.imp;
 
 
 import com.projeto.modelo.configuracao.exeption.ExcecoesCustomizada;
+import com.projeto.modelo.util.StringUtils;
 import com.projeto.modelo.controller.dto.request.CadastraUsuarioDTO;
 import com.projeto.modelo.controller.dto.request.UsuarioEsqueceuSenhaRequestDTO;
 import com.projeto.modelo.controller.dto.request.ValidaTrocaSenhaRequestDTO;
@@ -92,8 +93,12 @@ public class UsuarioServiceImp implements UsuarioService {
         usuario.setChavePix(cadastraUsuarioDTO.chavePix());
         usuario.setCep(cadastraUsuarioDTO.cep());
         usuario.setLogradouro(cadastraUsuarioDTO.logradouro());
+        usuario.setBairro(cadastraUsuarioDTO.bairro());
+        usuario.setNumero(cadastraUsuarioDTO.numero());
+        usuario.setComplemento(cadastraUsuarioDTO.complemento());
         usuario.setCidade(cadastraUsuarioDTO.cidade());
         usuario.setEstado(cadastraUsuarioDTO.estado());
+        usuario.setPais(cadastraUsuarioDTO.pais());
         usuario.setValorFixo(cadastraUsuarioDTO.valorFixo());
         usuario.setValorHora(cadastraUsuarioDTO.valorHora());
         
@@ -135,5 +140,40 @@ public class UsuarioServiceImp implements UsuarioService {
     public Page<UsuarioResposeDTO> listarUsuariosPaginado(Pageable pageable) {
         Page<Usuario> usuarios = this.usuarioRepository.findAll(pageable);
         return usuarios.map(this.usuarioMapper::toResponseDTO);
+    
+    }
+
+    @Override
+    public UsuarioResposeDTO atualizarUsuario(java.util.UUID id, CadastraUsuarioDTO usuarioDTO) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ExcecoesCustomizada("Usuário não encontrado", HttpStatus.NOT_FOUND));
+
+        if (!StringUtils.isNullOrEmpty(usuarioDTO.nome())) usuario.setNome(usuarioDTO.nome());
+        if (!StringUtils.isNullOrEmpty(usuarioDTO.email()) && !usuario.getEmail().equals(usuarioDTO.email())) {
+            if (usuarioRepository.findByEmail(usuarioDTO.email()).isPresent()) {
+                throw new ExcecoesCustomizada("E-mail já cadastrado", HttpStatus.BAD_REQUEST);
+            }
+            usuario.setEmail(usuarioDTO.email());
+        }
+        if (!StringUtils.isNullOrEmpty(usuarioDTO.senha())) {
+             usuario.setSenha(this.passwordEncoder.encode(usuarioDTO.senha()));
+        }
+        
+        if (usuarioDTO.cargo() != null) usuario.setCargo(usuarioDTO.cargo());
+        if (usuarioDTO.telefone() != null) usuario.setTelefone(usuarioDTO.telefone());
+        if (usuarioDTO.chavePix() != null) usuario.setChavePix(usuarioDTO.chavePix());
+        if (usuarioDTO.cep() != null) usuario.setCep(usuarioDTO.cep());
+        if (usuarioDTO.logradouro() != null) usuario.setLogradouro(usuarioDTO.logradouro());
+        if (usuarioDTO.bairro() != null) usuario.setBairro(usuarioDTO.bairro());
+        if (usuarioDTO.numero() != null) usuario.setNumero(usuarioDTO.numero());
+        if (usuarioDTO.complemento() != null) usuario.setComplemento(usuarioDTO.complemento());
+        if (usuarioDTO.cidade() != null) usuario.setCidade(usuarioDTO.cidade());
+        if (usuarioDTO.estado() != null) usuario.setEstado(usuarioDTO.estado());
+        if (usuarioDTO.pais() != null) usuario.setPais(usuarioDTO.pais());
+        if (usuarioDTO.valorFixo() != null) usuario.setValorFixo(usuarioDTO.valorFixo());
+        if (usuarioDTO.valorHora() != null) usuario.setValorHora(usuarioDTO.valorHora());
+
+        Usuario usuarioAtualizado = usuarioRepository.save(usuario);
+        return usuarioMapper.toResponseDTO(usuarioAtualizado);
     }
 }

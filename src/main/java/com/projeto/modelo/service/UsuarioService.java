@@ -21,6 +21,7 @@ public interface UsuarioService {
     void validaTrocaSenha(ValidaTrocaSenhaRequestDTO validaTrocaSenhaRequestDTO);
 
     UsuarioResposeDTO cadastraUsuario(CadastraUsuarioDTO cadastraUsuarioDTO);
+    UsuarioResposeDTO atualizarUsuario(java.util.UUID id, CadastraUsuarioDTO usuarioDTO);
 
     void esqueceuSenha(UsuarioEsqueceuSenhaRequestDTO usuarioEsqueceuSenhaRequestDTO);
 

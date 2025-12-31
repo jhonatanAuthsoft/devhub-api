@@ -1,0 +1,37 @@
+package com.projeto.modelo.controller.dto.response;
+
+import com.projeto.modelo.model.enums.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+public record ProjetoResponseDTO(
+    UUID id,
+    String titulo,
+    String descricao,
+    String requisitos,
+    UUID clienteId,
+    String nomeCliente,
+    UUID vendedorId,
+    String nomeVendedor,
+    LocalDate dataInicio,
+    LocalDate dataFimDesenv,
+    LocalDate dataFimProjeto,
+    TipoProjeto tipoProjeto,
+    TipoVenda tipoVenda,
+    ProjetoReferenciaDTO projetoOrigem,
+    String nomeIndicacao,
+    BigDecimal valorTotal,
+    BigDecimal valorContratoMensal,
+    BigDecimal impostoPercentual,
+    BigDecimal lucroPercentual,
+    BigDecimal valorDesenvolvimento,
+    StatusProjeto status,
+    List<LinkProjetoResponseDTO> links,
+    List<ParcelaProjetoResponseDTO> parcelas,
+    List<EquipeProjetoResponseDTO> equipe,
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
+) {}

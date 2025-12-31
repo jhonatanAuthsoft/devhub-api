@@ -58,4 +58,10 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarios);
     }
 
+    @org.springframework.web.bind.annotation.PutMapping(value = "/{id}")
+    public ResponseEntity<UsuarioResposeDTO> atualizar(@org.springframework.web.bind.annotation.PathVariable java.util.UUID id, @RequestBody CadastraUsuarioDTO usuarioDTO) {
+        UsuarioResposeDTO usuarioResposeDTO = this.usuarioService.atualizarUsuario(id, usuarioDTO);
+        return new ResponseEntity<>(usuarioResposeDTO, HttpStatus.OK);
+    }
+
 }

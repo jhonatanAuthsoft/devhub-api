@@ -13,8 +13,12 @@ public record CadastraUsuarioDTO(
         String chavePix,
         String cep,
         String logradouro,
+        String bairro,
         String cidade,
         String estado,
+        String numero,
+        String complemento,
+        String pais,
         java.math.BigDecimal valorFixo,
         java.math.BigDecimal valorHora
 ) {

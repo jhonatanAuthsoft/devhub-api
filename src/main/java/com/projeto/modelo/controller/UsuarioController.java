@@ -53,7 +53,7 @@ public class UsuarioController {
     public ResponseEntity<Page<UsuarioResposeDTO>> listarUsuarios(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCriacao").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("nome").ascending());
         Page<UsuarioResposeDTO> usuarios = this.usuarioService.listarUsuariosPaginado(pageable);
         return ResponseEntity.ok(usuarios);
     }

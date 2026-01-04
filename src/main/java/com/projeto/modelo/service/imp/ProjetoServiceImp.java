@@ -134,57 +134,25 @@ public class ProjetoServiceImp implements ProjetoService {
                 Usuario colaborador = usuarioRepository.findById(equipeDto.colaboradorId())
                         .orElseThrow(() -> new ExcecoesCustomizada("Colaborador não encontrado ID: " + equipeDto.colaboradorId(), HttpStatus.NOT_FOUND));
 
-                BigDecimal custoPrevisto = BigDecimal.ZERO;
-                BigDecimal horasPrevistas = BigDecimal.ZERO;
+                // Porcentagem definida individualmente
+                BigDecimal porcentagemMembro = equipeDto.porcentagem() != null ? equipeDto.porcentagem() : BigDecimal.ZERO;
+                BigDecimal percentualDecimal = porcentagemMembro.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
                 
-                // Regra: GP 10%, Design 20%, Dev 70%
-                double percentualRole = equipeDto.funcao().getPercentualDistribuicao(); 
-                // Nota: A regra diz "70% entre TODOS os desenvolvedores". 
-                // Aqui estou simplificando: se tiver N devs, cada um recebe uma parte? 
-                // O plano dizia: "70% entre todos os desenvolvedores, depois dividir pelo valor hora do dev"
-                // Para simplificar agora: vou alocar o percentual TOTAL da role para este membro? Nao, isso estaria errado se tiver 2 devs.
-                // Mas no cadastro, eu nao sei quantos devs vai ter no total ao iterar um por um?
-                // Solucao: Primeiro contar quantos de cada role tem.
-                
-                // Vou fazer em dois passos: adicionar DTOs numa lista temporaria e depois processar.
-            }
-            
-            // Re-processando a equipe com contagem
-            long countDevs = dto.equipe().stream().filter(e -> e.funcao() == FuncaoProjeto.DESENVOLVEDOR).count();
-            long countGPs = dto.equipe().stream().filter(e -> e.funcao() == FuncaoProjeto.GESTOR_PROJETO).count();
-            long countDesigners = dto.equipe().stream().filter(e -> e.funcao() == FuncaoProjeto.DESIGNER).count();
+                // Verba para este membro baseada na porcentagem do valor de desenvolvimento
+                BigDecimal verbaParaMembro = valorDesenvolvimento.multiply(percentualDecimal);
 
-            for (EquipeProjetoRequestDTO equipeDto : dto.equipe()) {
-                Usuario colaborador = usuarioRepository.findById(equipeDto.colaboradorId()).get(); // Ja validado
-
-                long countMembersInRole = 1;
-                if (equipeDto.funcao() == FuncaoProjeto.DESENVOLVEDOR) countMembersInRole = countDevs;
-                else if (equipeDto.funcao() == FuncaoProjeto.GESTOR_PROJETO) countMembersInRole = countGPs;
-                else if (equipeDto.funcao() == FuncaoProjeto.DESIGNER) countMembersInRole = countDesigners;
-                
-                if (countMembersInRole == 0) countMembersInRole = 1; // Evitar div by zero se logica falhar
-
-                BigDecimal percentualRole = BigDecimal.valueOf(equipeDto.funcao().getPercentualDistribuicao());
-                BigDecimal verbaParaRole = valorDesenvolvimento.multiply(percentualRole);
-                BigDecimal verbaParaMembro = verbaParaRole.divide(BigDecimal.valueOf(countMembersInRole), 2, RoundingMode.HALF_UP);
-                
                 BigDecimal horasCalculadas = BigDecimal.ZERO;
                 BigDecimal custoTotalMembro = BigDecimal.ZERO;
 
                 if (equipeDto.usaSalarioFixo()) {
-                    // Se salario fixo, o custo é o salario fixo mensal? Ou proporcional?
-                    // User disse: "trazer pra cá o valor total do salario do usuario"
-                    // Assumindo custo = salario (simplificado)
                     if (colaborador.getValorFixo() != null) {
                         custoTotalMembro = colaborador.getValorFixo();
                     }
-                    // Horas? Dificil estimar com salario fixo sem saber duracao. Deixar zero ou null.
                 } else {
-                    // Valor Hora
                     BigDecimal valorHora = colaborador.getValorHora();
                     if (valorHora != null && valorHora.compareTo(BigDecimal.ZERO) > 0) {
                         horasCalculadas = verbaParaMembro.divide(valorHora, 2, RoundingMode.HALF_UP);
-                        custoTotalMembro = verbaParaMembro; // O custo é o que foi alocado da verba
+                        custoTotalMembro = verbaParaMembro;
                     }
                 }
 
@@ -193,6 +161,7 @@ public class ProjetoServiceImp implements ProjetoService {
                         .colaborador(colaborador)
                         .funcao(equipeDto.funcao())
                         .usaSalarioFixo(equipeDto.usaSalarioFixo())
+                        .porcentagem(porcentagemMembro)
                         .custoPrevisto(custoTotalMembro)
                         .horasPrevistas(horasCalculadas)
                         .build();
@@ -339,27 +308,17 @@ public class ProjetoServiceImp implements ProjetoService {
         // Equipe
         projeto.getEquipe().clear();
         if (dto.equipe() != null) {
-            // Re-using logic from Create requires extracting method or duplicating.
-            // Duplicating for speed now, but refactoring recommended.
-            long countDevs = dto.equipe().stream().filter(e -> e.funcao() == FuncaoProjeto.DESENVOLVEDOR).count();
-            long countGPs = dto.equipe().stream().filter(e -> e.funcao() == FuncaoProjeto.GESTOR_PROJETO).count();
-            long countDesigners = dto.equipe().stream().filter(e -> e.funcao() == FuncaoProjeto.DESIGNER).count();
-
-             for (EquipeProjetoRequestDTO equipeDto : dto.equipe()) {
+            for (EquipeProjetoRequestDTO equipeDto : dto.equipe()) {
                 Usuario colaborador = usuarioRepository.findById(equipeDto.colaboradorId())
-                     .orElseThrow(() -> new ExcecoesCustomizada("Colaborador não encontrado", HttpStatus.NOT_FOUND));
+                        .orElseThrow(() -> new ExcecoesCustomizada("Colaborador não encontrado", HttpStatus.NOT_FOUND));
 
-                long countMembersInRole = 1;
-                if (equipeDto.funcao() == FuncaoProjeto.DESENVOLVEDOR) countMembersInRole = countDevs;
-                else if (equipeDto.funcao() == FuncaoProjeto.GESTOR_PROJETO) countMembersInRole = countGPs;
-                else if (equipeDto.funcao() == FuncaoProjeto.DESIGNER) countMembersInRole = countDesigners;
+                // Porcentagem definida individualmente
+                BigDecimal porcentagemMembro = equipeDto.porcentagem() != null ? equipeDto.porcentagem() : BigDecimal.ZERO;
+                BigDecimal percentualDecimal = porcentagemMembro.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
                 
-                if (countMembersInRole == 0) countMembersInRole = 1;
+                // Verba para este membro
+                BigDecimal verbaParaMembro = valorDesenvolvimento.multiply(percentualDecimal);
 
-                BigDecimal percentualRole = BigDecimal.valueOf(equipeDto.funcao().getPercentualDistribuicao());
-                BigDecimal verbaParaRole = valorDesenvolvimento.multiply(percentualRole);
-                BigDecimal verbaParaMembro = verbaParaRole.divide(BigDecimal.valueOf(countMembersInRole), 2, RoundingMode.HALF_UP);
-                
                 BigDecimal horasCalculadas = BigDecimal.ZERO;
                 BigDecimal custoTotalMembro = BigDecimal.ZERO;
 
@@ -380,6 +339,7 @@ public class ProjetoServiceImp implements ProjetoService {
                         .colaborador(colaborador)
                         .funcao(equipeDto.funcao())
                         .usaSalarioFixo(equipeDto.usaSalarioFixo())
+                        .porcentagem(porcentagemMembro)
                         .custoPrevisto(custoTotalMembro)
                         .horasPrevistas(horasCalculadas)
                         .build();
@@ -483,6 +443,7 @@ public class ProjetoServiceImp implements ProjetoService {
             e.getColaborador().getNome(), 
             e.getFuncao(), 
             e.getUsaSalarioFixo(), 
+            e.getPorcentagem(),
             e.getHorasPrevistas(), 
             e.getCustoPrevisto()
         );

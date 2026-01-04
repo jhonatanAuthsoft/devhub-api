@@ -38,6 +38,10 @@ public class EquipeProjeto {
     @Column(name = "usa_salario_fixo")
     private Boolean usaSalarioFixo;
 
+    @Column(name = "porcentagem", precision = 5, scale = 2)
+    private BigDecimal porcentagem;
+
+
     @Column(name = "horas_previstas", precision = 10, scale = 2)
     private BigDecimal horasPrevistas;
 

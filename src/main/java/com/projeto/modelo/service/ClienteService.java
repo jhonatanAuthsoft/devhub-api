@@ -34,10 +34,12 @@ public class ClienteService {
         }
 
         // Validar responsáveis para CNPJ
+        /*
         if (dto.getTipoPessoa() == TipoPessoa.CNPJ && 
             (dto.getResponsaveis() == null || dto.getResponsaveis().isEmpty())) {
             throw new RuntimeException("Cliente CNPJ deve ter pelo menos um responsável");
         }
+        */
 
         Cliente cliente = Cliente.builder()
                 .tipoPessoa(dto.getTipoPessoa())
@@ -51,6 +53,10 @@ public class ClienteService {
                 .cidade(dto.getCidade())
                 .estado(dto.getEstado())
                 .cep(dto.getCep())
+                .bairro(dto.getBairro())
+                .numero(dto.getNumero())
+                .complemento(dto.getComplemento())
+                .pais(dto.getPais())
                 .build();
 
         // Adicionar responsáveis se for CNPJ
@@ -59,6 +65,7 @@ public class ClienteService {
                 Pessoa responsavel = Pessoa.builder()
                         .tipoPessoa(TipoPessoaVinculo.RESPONSAVEL)
                         .nome(responsavelDto.getNome())
+                        .cpf(responsavelDto.getCpf())
                         .telefone(responsavelDto.getTelefone())
                         .email(responsavelDto.getEmail())
                         .build();
@@ -92,6 +99,10 @@ public class ClienteService {
         cliente.setCidade(dto.getCidade());
         cliente.setEstado(dto.getEstado());
         cliente.setCep(dto.getCep());
+        cliente.setBairro(dto.getBairro());
+        cliente.setNumero(dto.getNumero());
+        cliente.setComplemento(dto.getComplemento());
+        cliente.setPais(dto.getPais());
 
         Cliente updated = clienteRepository.save(cliente);
         return toResponseDTO(updated);
@@ -177,6 +188,10 @@ public class ClienteService {
                 .cidade(cliente.getCidade())
                 .estado(cliente.getEstado())
                 .cep(cliente.getCep())
+                .bairro(cliente.getBairro())
+                .numero(cliente.getNumero())
+                .complemento(cliente.getComplemento())
+                .pais(cliente.getPais())
                 .pessoas(pessoas)
                 .dataCriacao(cliente.getDataCriacao())
                 .dataAtualizacao(cliente.getDataAtualizacao())
@@ -189,6 +204,7 @@ public class ClienteService {
                 .clienteId(pessoa.getCliente().getId())
                 .tipoPessoa(pessoa.getTipoPessoa())
                 .nome(pessoa.getNome())
+                .cpf(pessoa.getCpf())
                 .email(pessoa.getEmail())
                 .telefone(pessoa.getTelefone())
                 .cargo(pessoa.getCargo())

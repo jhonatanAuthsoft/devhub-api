@@ -1,0 +1,1 @@
+ALTER TABLE pessoa ADD COLUMN cpf VARCHAR(14);

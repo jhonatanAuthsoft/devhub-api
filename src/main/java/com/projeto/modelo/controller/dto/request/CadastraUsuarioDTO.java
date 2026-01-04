@@ -20,7 +20,11 @@ public record CadastraUsuarioDTO(
         String complemento,
         String pais,
         java.math.BigDecimal valorFixo,
-        java.math.BigDecimal valorHora
+        java.math.BigDecimal valorHora,
+        String razaoSocial,
+        String cnpj,
+        String cpf,
+        String emailAuthsoft
 ) {
     public CadastraUsuarioDTO {
         if (StringUtils.isNullOrEmpty(email)) {

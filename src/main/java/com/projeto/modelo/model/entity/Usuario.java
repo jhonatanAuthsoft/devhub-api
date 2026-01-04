@@ -65,6 +65,18 @@ public class Usuario extends BaseEntity  implements UserDetails, Serializable {
     @Column(name = "bairro")
     private String bairro;
 
+    @Column(name = "razao_social")
+    private String razaoSocial;
+
+    @Column(name = "cnpj")
+    private String cnpj;
+
+    @Column(name = "cpf")
+    private String cpf;
+
+    @Column(name = "email_authsoft")
+    private String emailAuthsoft;
+
     @Column(name = "cidade")
     private String cidade;
 

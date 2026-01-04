@@ -101,6 +101,10 @@ public class UsuarioServiceImp implements UsuarioService {
         usuario.setPais(cadastraUsuarioDTO.pais());
         usuario.setValorFixo(cadastraUsuarioDTO.valorFixo());
         usuario.setValorHora(cadastraUsuarioDTO.valorHora());
+        usuario.setRazaoSocial(cadastraUsuarioDTO.razaoSocial());
+        usuario.setCnpj(cadastraUsuarioDTO.cnpj());
+        usuario.setCpf(cadastraUsuarioDTO.cpf());
+        usuario.setEmailAuthsoft(cadastraUsuarioDTO.emailAuthsoft());
         
         Usuario usuarioSalvo = this.usuarioRepository.save(usuario);
         UsuarioResposeDTO responseDTO = this.usuarioMapper.toResponseDTO(usuarioSalvo);
@@ -172,6 +176,10 @@ public class UsuarioServiceImp implements UsuarioService {
         if (usuarioDTO.pais() != null) usuario.setPais(usuarioDTO.pais());
         if (usuarioDTO.valorFixo() != null) usuario.setValorFixo(usuarioDTO.valorFixo());
         if (usuarioDTO.valorHora() != null) usuario.setValorHora(usuarioDTO.valorHora());
+        if (usuarioDTO.razaoSocial() != null) usuario.setRazaoSocial(usuarioDTO.razaoSocial());
+        if (usuarioDTO.cnpj() != null) usuario.setCnpj(usuarioDTO.cnpj());
+        if (usuarioDTO.cpf() != null) usuario.setCpf(usuarioDTO.cpf());
+        if (usuarioDTO.emailAuthsoft() != null) usuario.setEmailAuthsoft(usuarioDTO.emailAuthsoft());
 
         Usuario usuarioAtualizado = usuarioRepository.save(usuario);
         return usuarioMapper.toResponseDTO(usuarioAtualizado);

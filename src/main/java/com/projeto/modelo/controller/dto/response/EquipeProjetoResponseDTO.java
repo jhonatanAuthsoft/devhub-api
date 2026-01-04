@@ -10,6 +10,7 @@ public record EquipeProjetoResponseDTO(
     String nomeColaborador,
     FuncaoProjeto funcao,
     Boolean usaSalarioFixo,
+    BigDecimal porcentagem,
     BigDecimal horasPrevistas,
     BigDecimal custoPrevisto
 ) {}

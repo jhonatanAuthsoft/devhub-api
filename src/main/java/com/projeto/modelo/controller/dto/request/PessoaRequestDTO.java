@@ -16,6 +16,7 @@ public class PessoaRequestDTO {
     private UUID clienteId;
     private TipoPessoaVinculo tipoPessoa;
     private String nome;
+    private String cpf;
     private String email;
     private String telefone;
     

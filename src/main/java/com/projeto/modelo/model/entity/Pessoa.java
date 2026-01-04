@@ -28,10 +28,13 @@ public class Pessoa extends BaseEntity {
     @Column(name = "nome", nullable = false)
     private String nome;
 
+    @Column(name = "cpf", length = 14)
+    private String cpf;
+
     @Column(name = "email")
     private String email;
 
-    @Column(name = "telefone", nullable = false, length = 20)
+    @Column(name = "telefone", length = 20)
     private String telefone;
 
     // Campos específicos para CONTATO

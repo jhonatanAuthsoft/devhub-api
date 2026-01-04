@@ -31,6 +31,10 @@ public class ClienteResponseDTO {
     private String cidade;
     private String estado;
     private String cep;
+    private String bairro;
+    private String numero;
+    private String complemento;
+    private String pais;
     
     // Pessoas vinculadas
     @Builder.Default

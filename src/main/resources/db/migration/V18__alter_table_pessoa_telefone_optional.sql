@@ -1,0 +1,1 @@
+ALTER TABLE pessoa ALTER COLUMN telefone DROP NOT NULL;

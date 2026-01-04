@@ -31,6 +31,10 @@ public class UsuarioMapper {
                 .pais(usuario.getPais())
                 .valorFixo(usuario.getValorFixo())
                 .valorHora(usuario.getValorHora())
+                .razaoSocial(usuario.getRazaoSocial())
+                .cnpj(usuario.getCnpj())
+                .cpf(usuario.getCpf())
+                .emailAuthsoft(usuario.getEmailAuthsoft())
                 .build();
     }
 

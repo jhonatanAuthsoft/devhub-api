@@ -55,6 +55,18 @@ public class Cliente extends BaseEntity {
     @Column(name = "cep", length = 10)
     private String cep;
 
+    @Column(name = "bairro")
+    private String bairro;
+
+    @Column(name = "numero", length = 20)
+    private String numero;
+
+    @Column(name = "complemento")
+    private String complemento;
+
+    @Column(name = "pais", length = 100)
+    private String pais;
+
     // Relacionamentos
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

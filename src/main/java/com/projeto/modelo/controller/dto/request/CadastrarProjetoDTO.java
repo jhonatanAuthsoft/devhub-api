@@ -21,8 +21,11 @@ public record CadastrarProjetoDTO(
     String nomeIndicacao,
     BigDecimal valorTotal,
     BigDecimal valorContratoMensal,
+    BigDecimal horasEstimadas,
     Integer quantidadeParcelas,
     Boolean emitirNf,
+    Boolean permiteUltrapassarHoras,
+    StatusProjeto status,
     List<ParcelaProjetoRequestDTO> parcelas,
     List<LinkProjetoRequestDTO> links,
     List<EquipeProjetoRequestDTO> equipe

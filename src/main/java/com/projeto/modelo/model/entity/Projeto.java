@@ -38,7 +38,7 @@ public class Projeto {
 
     @ManyToOne
     @JoinColumn(name = "cliente_id", nullable = false)
-    private Pessoa cliente;
+    private Cliente cliente;
 
     @ManyToOne
     @JoinColumn(name = "vendedor_id")
@@ -87,6 +87,13 @@ public class Projeto {
 
     @Column(name = "valor_desenvolvimento", precision = 15, scale = 2)
     private BigDecimal valorDesenvolvimento;
+
+    @Column(name = "horas_estimadas", precision = 15, scale = 2)
+    private BigDecimal horasEstimadas;
+
+    @Builder.Default
+    @Column(name = "permite_ultrapassar_horas")
+    private Boolean permiteUltrapassarHoras = false;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default

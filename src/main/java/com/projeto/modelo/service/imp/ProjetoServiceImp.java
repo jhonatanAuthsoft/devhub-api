@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 public class ProjetoServiceImp implements ProjetoService {
 
     private final ProjetoRepository projetoRepository;
+    private final ClienteRepository clienteRepository;
     private final PessoaRepository pessoaRepository;
     private final UsuarioRepository usuarioRepository;
     private final MetaRepository metaRepository;
@@ -35,7 +36,7 @@ public class ProjetoServiceImp implements ProjetoService {
     @Transactional
     public ProjetoResponseDTO cadastrarProjeto(CadastrarProjetoDTO dto) {
         // 1. Validar Cliente
-        Pessoa cliente = pessoaRepository.findById(dto.clienteId())
+        Cliente cliente = clienteRepository.findById(dto.clienteId())
                 .orElseThrow(() -> new ExcecoesCustomizada("Cliente não encontrado", HttpStatus.NOT_FOUND));
 
         // 2. Validar Vendedor (Opcional, mas se passar ID deve existir)
@@ -93,8 +94,10 @@ public class ProjetoServiceImp implements ProjetoService {
                 .impostoPercentual(impostoPercentual)
                 .lucroPercentual(lucroPercentual)
                 .valorDesenvolvimento(valorDesenvolvimento)
-                .status(StatusProjeto.PRE_VENDA)
+                .horasEstimadas(dto.horasEstimadas())
+                .status(dto.status() != null ? dto.status() : StatusProjeto.PRE_VENDA)
                 .emitirNf(dto.emitirNf() != null ? dto.emitirNf() : false)
+                .permiteUltrapassarHoras(dto.permiteUltrapassarHoras() != null ? dto.permiteUltrapassarHoras() : false)
                 .links(new ArrayList<>())
                 .parcelas(new ArrayList<>())
                 .equipe(new ArrayList<>())
@@ -183,7 +186,7 @@ public class ProjetoServiceImp implements ProjetoService {
                         .build();
                 projeto.getParcelas().add(parcela);
             }
-        } else if (dto.tipoProjeto() == TipoProjeto.SOB_MEDIDA && dto.quantidadeParcelas() != null && dto.quantidadeParcelas() > 0) {
+        } else if ((dto.tipoProjeto() == TipoProjeto.SOB_MEDIDA || dto.tipoProjeto() == TipoProjeto.HORAS_AVULSA) && dto.quantidadeParcelas() != null && dto.quantidadeParcelas() > 0) {
             // Geração automática antiga (como fallback)
             BigDecimal valorParcela = valorTotal.divide(BigDecimal.valueOf(dto.quantidadeParcelas()), 2, RoundingMode.HALF_UP);
             BigDecimal somaParcelas = BigDecimal.ZERO;
@@ -233,7 +236,7 @@ public class ProjetoServiceImp implements ProjetoService {
                 .orElseThrow(() -> new ExcecoesCustomizada("Projeto não encontrado", HttpStatus.NOT_FOUND));
 
         // 1. Validar e Atualizar Cliente
-        Pessoa cliente = pessoaRepository.findById(dto.clienteId())
+        Cliente cliente = clienteRepository.findById(dto.clienteId())
                 .orElseThrow(() -> new ExcecoesCustomizada("Cliente não encontrado", HttpStatus.NOT_FOUND));
         projeto.setCliente(cliente);
 
@@ -267,6 +270,12 @@ public class ProjetoServiceImp implements ProjetoService {
         projeto.setNomeIndicacao(dto.nomeIndicacao());
         projeto.setEmitirNf(dto.emitirNf() != null ? dto.emitirNf() : false);
         projeto.setValorContratoMensal(dto.valorContratoMensal());
+        projeto.setHorasEstimadas(dto.horasEstimadas());
+        projeto.setPermiteUltrapassarHoras(dto.permiteUltrapassarHoras() != null ? dto.permiteUltrapassarHoras() : false);
+
+        if (dto.status() != null) {
+            projeto.setStatus(dto.status());
+        }
 
         // 5. Recalcular Financeiro (Se necessário for implementado igual ao cadastro)
         // Por simplicidade, recalculamos sempre baseados no valorTotal novo ou antigo
@@ -361,7 +370,7 @@ public class ProjetoServiceImp implements ProjetoService {
                         .build();
                 projeto.getParcelas().add(parcela);
             }
-        } else if (dto.tipoProjeto() == TipoProjeto.SOB_MEDIDA && dto.quantidadeParcelas() != null && dto.quantidadeParcelas() > 0) {
+        } else if ((dto.tipoProjeto() == TipoProjeto.SOB_MEDIDA || dto.tipoProjeto() == TipoProjeto.HORAS_AVULSA) && dto.quantidadeParcelas() != null && dto.quantidadeParcelas() > 0) {
             BigDecimal valorParcelaCalc = valorTotal.divide(BigDecimal.valueOf(dto.quantidadeParcelas()), 2, RoundingMode.HALF_UP);
             BigDecimal somaParcelas = BigDecimal.ZERO;
 
@@ -419,6 +428,9 @@ public class ProjetoServiceImp implements ProjetoService {
             p.getImpostoPercentual(),
             p.getLucroPercentual(),
             p.getValorDesenvolvimento(),
+            p.getHorasEstimadas(),
+            p.getEmitirNf(),
+            p.getPermiteUltrapassarHoras(),
             p.getStatus(),
             p.getLinks().stream().map(this::mapLink).collect(Collectors.toList()),
             p.getParcelas().stream().map(this::mapParcela).collect(Collectors.toList()),

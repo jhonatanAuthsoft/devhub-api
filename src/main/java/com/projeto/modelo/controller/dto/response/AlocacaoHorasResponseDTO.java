@@ -12,5 +12,6 @@ public record AlocacaoHorasResponseDTO(
     BigDecimal porcentagem,
     BigDecimal custoCalculado,
     BigDecimal horasCalculadas,
-    BigDecimal horasPrevistas
+    BigDecimal horasPrevistas,
+    BigDecimal custoPrevisto
 ) {}

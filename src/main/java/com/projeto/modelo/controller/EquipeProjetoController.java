@@ -24,7 +24,13 @@ public class EquipeProjetoController {
 
     @PutMapping("/{equipeId}/horas")
     public ResponseEntity<Void> atualizarHoras(@PathVariable UUID equipeId, @RequestBody AtualizarHorasDTO dto) {
-        equipeProjetoService.atualizarHoras(equipeId, dto);
-        return ResponseEntity.noContent().build();
+        try {
+            System.out.println("Recebendo atualização de horas para equipeId: " + equipeId + " com valor: " + dto.horasPrevistas());
+            equipeProjetoService.atualizarHoras(equipeId, dto);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

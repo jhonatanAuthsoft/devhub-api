@@ -59,7 +59,8 @@ public class EquipeProjetoServiceImp implements EquipeProjetoService {
                 porcentagem,
                 custoCalculado,
                 horasCalculadas,
-                membro.getHorasPrevistas() // Pode ser null se ainda nao definido
+                membro.getHorasPrevistas(),
+                membro.getCustoPrevisto()
             );
         }).collect(Collectors.toList());
     }
@@ -71,6 +72,17 @@ public class EquipeProjetoServiceImp implements EquipeProjetoService {
             .orElseThrow(() -> new RuntimeException("Membro da equipe não encontrado"));
         
         membro.setHorasPrevistas(dto.horasPrevistas());
+        
+        // Calcular Custo Previsto
+        BigDecimal valorHora = membro.getColaborador().getValorHora();
+        if (valorHora == null) valorHora = BigDecimal.ZERO;
+        
+        BigDecimal custo = dto.horasPrevistas() != null 
+            ? dto.horasPrevistas().multiply(valorHora).setScale(2, RoundingMode.HALF_UP)
+            : BigDecimal.ZERO;
+            
+        membro.setCustoPrevisto(custo);
+        
         equipeProjetoRepository.save(membro);
     }
 }

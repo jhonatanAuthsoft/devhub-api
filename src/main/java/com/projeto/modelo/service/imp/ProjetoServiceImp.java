@@ -65,7 +65,9 @@ public class ProjetoServiceImp implements ProjetoService {
         Meta metaLucro = metaRepository.findByAnoAndCategoriaAndTipoMeta(anoProjeto, CategoriaMeta.LUCRO, TipoMeta.META_NORMAL)
                 .orElse(null);
 
-        BigDecimal lucroPercentual = metaLucro != null ? metaLucro.getValorAnual() : BigDecimal.ZERO;
+        BigDecimal lucroPercentual = dto.lucroPercentual() != null 
+            ? dto.lucroPercentual() 
+            : (metaLucro != null ? metaLucro.getValorAnual() : BigDecimal.ZERO);
 
         // 5. Cálculos Financeiros
         BigDecimal valorTotal = dto.valorTotal() != null ? dto.valorTotal() : BigDecimal.ZERO;
@@ -287,7 +289,9 @@ public class ProjetoServiceImp implements ProjetoService {
         
         Integer anoProjeto = dto.dataInicio() != null ? dto.dataInicio().getYear() : LocalDate.now().getYear();
         Meta metaLucro = metaRepository.findByAnoAndCategoriaAndTipoMeta(anoProjeto, CategoriaMeta.LUCRO, TipoMeta.META_NORMAL).orElse(null);
-        BigDecimal lucroPercentual = metaLucro != null ? metaLucro.getValorAnual() : BigDecimal.ZERO;
+        BigDecimal lucroPercentual = dto.lucroPercentual() != null 
+            ? dto.lucroPercentual() 
+            : (metaLucro != null ? metaLucro.getValorAnual() : BigDecimal.ZERO);
         projeto.setLucroPercentual(lucroPercentual);
 
         BigDecimal valorImposto = valorTotal.multiply(impostoPercentual).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);

@@ -25,6 +25,7 @@ public record CadastrarProjetoDTO(
     Integer quantidadeParcelas,
     Boolean emitirNf,
     Boolean permiteUltrapassarHoras,
+    BigDecimal lucroPercentual,
     StatusProjeto status,
     List<ParcelaProjetoRequestDTO> parcelas,
     List<LinkProjetoRequestDTO> links,

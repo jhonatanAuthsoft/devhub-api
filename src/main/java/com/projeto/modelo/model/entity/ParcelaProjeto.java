@@ -48,4 +48,54 @@ public class ParcelaProjeto {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
+
+    // Manual Getters and Setters and Builder
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public Projeto getProjeto() { return projeto; }
+    public void setProjeto(Projeto projeto) { this.projeto = projeto; }
+    public Integer getNumero() { return numero; }
+    public void setNumero(Integer numero) { this.numero = numero; }
+    public BigDecimal getValor() { return valor; }
+    public void setValor(BigDecimal valor) { this.valor = valor; }
+    public LocalDate getDataVencimento() { return dataVencimento; }
+    public void setDataVencimento(LocalDate dataVencimento) { this.dataVencimento = dataVencimento; }
+    public StatusParcela getStatus() { return status; }
+    public void setStatus(StatusParcela status) { this.status = status; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public static ParcelaProjetoBuilder builder() {
+        return new ParcelaProjetoBuilder();
+    }
+
+    public static class ParcelaProjetoBuilder {
+        private UUID id;
+        private Projeto projeto;
+        private Integer numero;
+        private BigDecimal valor;
+        private LocalDate dataVencimento;
+        private StatusParcela status = StatusParcela.PENDENTE;
+        private LocalDateTime createdAt;
+
+        public ParcelaProjetoBuilder id(UUID id) { this.id = id; return this; }
+        public ParcelaProjetoBuilder projeto(Projeto projeto) { this.projeto = projeto; return this; }
+        public ParcelaProjetoBuilder numero(Integer numero) { this.numero = numero; return this; }
+        public ParcelaProjetoBuilder valor(BigDecimal valor) { this.valor = valor; return this; }
+        public ParcelaProjetoBuilder dataVencimento(LocalDate dataVencimento) { this.dataVencimento = dataVencimento; return this; }
+        public ParcelaProjetoBuilder status(StatusParcela status) { this.status = status; return this; }
+        public ParcelaProjetoBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+
+        public ParcelaProjeto build() {
+            ParcelaProjeto parcelaProjeto = new ParcelaProjeto();
+            parcelaProjeto.setId(id);
+            parcelaProjeto.setProjeto(projeto);
+            parcelaProjeto.setNumero(numero);
+            parcelaProjeto.setValor(valor);
+            parcelaProjeto.setDataVencimento(dataVencimento);
+            parcelaProjeto.setStatus(status);
+            parcelaProjeto.setCreatedAt(createdAt);
+            return parcelaProjeto;
+        }
+    }
 }

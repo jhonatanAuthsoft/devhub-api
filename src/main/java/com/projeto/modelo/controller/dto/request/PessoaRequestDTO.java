@@ -25,4 +25,25 @@ public class PessoaRequestDTO {
     private Boolean recebeBoleto;
     private Boolean recebeNf;
     private Boolean recebeContrato;
+
+    public UUID getClienteId() { return clienteId; }
+    public void setClienteId(UUID clienteId) { this.clienteId = clienteId; }
+    public TipoPessoaVinculo getTipoPessoa() { return tipoPessoa; }
+    public void setTipoPessoa(TipoPessoaVinculo tipoPessoa) { this.tipoPessoa = tipoPessoa; }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+    public String getCpf() { return cpf; }
+    public void setCpf(String cpf) { this.cpf = cpf; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getTelefone() { return telefone; }
+    public void setTelefone(String telefone) { this.telefone = telefone; }
+    public String getCargo() { return cargo; }
+    public void setCargo(String cargo) { this.cargo = cargo; }
+    public Boolean getRecebeBoleto() { return recebeBoleto; }
+    public void setRecebeBoleto(Boolean recebeBoleto) { this.recebeBoleto = recebeBoleto; }
+    public Boolean getRecebeNf() { return recebeNf; }
+    public void setRecebeNf(Boolean recebeNf) { this.recebeNf = recebeNf; }
+    public Boolean getRecebeContrato() { return recebeContrato; }
+    public void setRecebeContrato(Boolean recebeContrato) { this.recebeContrato = recebeContrato; }
 }

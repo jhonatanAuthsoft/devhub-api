@@ -33,4 +33,12 @@ public abstract class BaseEntity {
     @Column(name = "data_atualizacao")
     private LocalDateTime dataAtualizacao;
 
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public LocalDateTime getDataCriacao() { return dataCriacao; }
+    public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
+    public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
+    public void setDataAtualizacao(LocalDateTime dataAtualizacao) { this.dataAtualizacao = dataAtualizacao; }
+
+
 }

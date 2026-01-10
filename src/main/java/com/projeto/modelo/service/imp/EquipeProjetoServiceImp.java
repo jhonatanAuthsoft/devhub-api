@@ -3,6 +3,7 @@ package com.projeto.modelo.service.imp;
 import com.projeto.modelo.controller.dto.request.AtualizarHorasDTO;
 import com.projeto.modelo.controller.dto.response.AlocacaoHorasResponseDTO;
 import com.projeto.modelo.model.entity.EquipeProjeto;
+import com.projeto.modelo.repository.ApontamentoRepository;
 import com.projeto.modelo.repository.EquipeProjetoRepository;
 import com.projeto.modelo.service.EquipeProjetoService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 public class EquipeProjetoServiceImp implements EquipeProjetoService {
 
     private final EquipeProjetoRepository equipeProjetoRepository;
+    private final ApontamentoRepository apontamentoRepository;
 
     @Override
     public List<AlocacaoHorasResponseDTO> listarAlocacao(UUID projetoId) {
@@ -51,6 +53,22 @@ public class EquipeProjetoServiceImp implements EquipeProjetoService {
                 horasCalculadas = custoCalculado.divide(membro.getColaborador().getValorHora(), 2, RoundingMode.HALF_UP);
             }
 
+            // NOVOS CAMPOS: Rastreamento de Uso
+            // Horas Utilizadas = Soma de apontamentos deste colaborador neste projeto
+            BigDecimal horasUtilizadas = apontamentoRepository.sumHorasByProjetoIdAndColaboradorId(projetoId, membro.getColaborador().getId());
+            if (horasUtilizadas == null) horasUtilizadas = BigDecimal.ZERO;
+
+            // Valor Utilizado = Horas Utilizadas * Valor Hora
+            BigDecimal valorUtilizado = horasUtilizadas.multiply(membro.getColaborador().getValorHora() != null ? membro.getColaborador().getValorHora() : BigDecimal.ZERO);
+
+            // Saldo Horas = Horas Previstas - Horas Utilizadas
+            BigDecimal horasPrevistas = membro.getHorasPrevistas() != null ? membro.getHorasPrevistas() : BigDecimal.ZERO;
+            BigDecimal saldoHoras = horasPrevistas.subtract(horasUtilizadas);
+
+            // Saldo Valor = Custo Previsto - Valor Utilizado
+            BigDecimal custoPrevisto = membro.getCustoPrevisto() != null ? membro.getCustoPrevisto() : BigDecimal.ZERO;
+            BigDecimal saldoValor = custoPrevisto.subtract(valorUtilizado);
+
             return new AlocacaoHorasResponseDTO(
                 membro.getId(),
                 membro.getColaborador().getNome(),
@@ -60,7 +78,11 @@ public class EquipeProjetoServiceImp implements EquipeProjetoService {
                 custoCalculado,
                 horasCalculadas,
                 membro.getHorasPrevistas(),
-                membro.getCustoPrevisto()
+                membro.getCustoPrevisto(),
+                horasUtilizadas,
+                valorUtilizado,
+                saldoHoras,
+                saldoValor
             );
         }).collect(Collectors.toList());
     }

@@ -13,5 +13,10 @@ public record AlocacaoHorasResponseDTO(
     BigDecimal custoCalculado,
     BigDecimal horasCalculadas,
     BigDecimal horasPrevistas,
-    BigDecimal custoPrevisto
+    BigDecimal custoPrevisto,
+    // Campos de rastreamento de uso (calculados, não persistidos)
+    BigDecimal horasUtilizadas,
+    BigDecimal valorUtilizado,
+    BigDecimal saldoHoras,
+    BigDecimal saldoValor
 ) {}

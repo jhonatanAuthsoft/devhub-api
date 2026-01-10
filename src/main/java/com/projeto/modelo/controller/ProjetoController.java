@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -37,6 +39,11 @@ public class ProjetoController {
     @GetMapping("/{id}")
     public ResponseEntity<ProjetoResponseDTO> buscarPorId(@PathVariable UUID id) {
         return ResponseEntity.ok(projetoService.buscarPorId(id));
+    }
+
+    @GetMapping("/colaborador/{colaboradorId}")
+    public ResponseEntity<List<ProjetoResponseDTO>> listarProjetosPorColaborador(@PathVariable UUID colaboradorId) {
+        return ResponseEntity.ok(projetoService.listarProjetosPorColaborador(colaboradorId));
     }
 
     @PutMapping("/{id}")

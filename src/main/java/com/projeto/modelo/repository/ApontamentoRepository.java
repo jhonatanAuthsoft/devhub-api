@@ -10,8 +10,18 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ApontamentoRepository extends JpaRepository<Apontamento, UUID> {
+
     List<Apontamento> findByProjetoId(UUID projetoId);
 
-    @Query("SELECT  COALESCE(SUM(a.horas), 0) FROM Apontamento a WHERE a.projeto.id = :projetoId")
+    @Query("SELECT COALESCE(SUM(a.horas), 0) FROM Apontamento a WHERE a.projeto.id = :projetoId")
     BigDecimal sumHorasByProjetoId(@Param("projetoId") UUID projetoId);
+
+    @Query("SELECT COALESCE(SUM(a.horas), 0) FROM Apontamento a WHERE a.projeto.id = :projetoId AND a.colaborador.id = :colaboradorId")
+    BigDecimal sumHorasByProjetoIdAndColaboradorId(@Param("projetoId") UUID projetoId, @Param("colaboradorId") UUID colaboradorId);
+
+    @Query("SELECT ep.horasPrevistas FROM EquipeProjeto ep WHERE ep.projeto.id = :projetoId AND ep.colaborador.id = :colaboradorId")
+    BigDecimal findHorasPrevistasByProjetoAndColaborador(@Param("projetoId") UUID projetoId, @Param("colaboradorId") UUID colaboradorId);
+
+    @Query("SELECT COALESCE(ep.usaSalarioFixo, false) FROM EquipeProjeto ep WHERE ep.projeto.id = :projetoId AND ep.colaborador.id = :colaboradorId")
+    Boolean findUsaSalarioFixoByProjetoAndColaborador(@Param("projetoId") UUID projetoId, @Param("colaboradorId") UUID colaboradorId);
 }

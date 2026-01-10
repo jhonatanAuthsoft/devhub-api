@@ -45,7 +45,8 @@ public class SecurityConfig {
                                 "/actuator/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/error"
                         ).permitAll() // Permitir endpoints públicos
                         .anyRequest().authenticated() // Exigir autenticação para os demais endpoints
                 )

@@ -33,16 +33,45 @@ public class ApontamentoServiceImp implements ApontamentoService {
         Usuario colaborador = usuarioRepository.findById(dto.colaboradorId())
                 .orElseThrow(() -> new RuntimeException("Colaborador não encontrado"));
 
-        // VALIDATION LOGIC
-        if (!Boolean.TRUE.equals(projeto.getPermiteUltrapassarHoras())) {
-            BigDecimal horasAtuais = repository.sumHorasByProjetoId(dto.projetoId());
-            BigDecimal horasEstimadas = projeto.getHorasEstimadas() != null ? projeto.getHorasEstimadas() : BigDecimal.ZERO;
-            BigDecimal novaSoma = horasAtuais.add(dto.horas());
 
-            if (novaSoma.compareTo(horasEstimadas) > 0) {
-                throw new RuntimeException("O apontamento excede as horas estimadas do projeto (" + horasEstimadas + "h). Saldo atual: " + horasAtuais + "h. Tentativa: " + dto.horas() + "h.");
+        // VALIDATION LOGIC
+        // Verificar se o colaborador usa salário fixo neste projeto
+        Boolean usaSalarioFixo = repository.findUsaSalarioFixoByProjetoAndColaborador(dto.projetoId(), dto.colaboradorId());
+        
+        // Se usa salário fixo, não aplicar validação de horas
+        if (Boolean.TRUE.equals(usaSalarioFixo)) {
+            // Colaborador com salário fixo pode lançar horas ilimitadas
+        } else if (!Boolean.TRUE.equals(projeto.getPermiteUltrapassarHoras())) {
+            // Para projetos SOB_MEDIDA, validar contra as horas alocadas para o colaborador específico
+            // Para outros tipos (ALOCACAO, HORAS_AVULSA), validar contra horas estimadas do projeto
+            BigDecimal horasLimite;
+            
+            if ("SOB_MEDIDA".equals(projeto.getTipoProjeto().toString())) {
+                // Buscar horas alocadas para este colaborador específico
+                BigDecimal horasAlocadas = repository.sumHorasByProjetoIdAndColaboradorId(dto.projetoId(), dto.colaboradorId());
+                if (horasAlocadas == null) horasAlocadas = BigDecimal.ZERO;
+                
+                // Buscar a alocação do colaborador na equipe
+                BigDecimal horasPrevistas = repository.findHorasPrevistasByProjetoAndColaborador(dto.projetoId(), dto.colaboradorId());
+                horasLimite = horasPrevistas != null ? horasPrevistas : BigDecimal.ZERO;
+                
+                BigDecimal novaSoma = horasAlocadas.add(dto.horas());
+                
+                if (novaSoma.compareTo(horasLimite) > 0) {
+                    throw new RuntimeException("O apontamento excede as horas alocadas para você neste projeto (" + horasLimite + "h). Saldo atual: " + horasAlocadas + "h. Tentativa: " + dto.horas() + "h.");
+                }
+            } else {
+                // Para ALOCACAO e HORAS_AVULSA, usar horas estimadas do projeto
+                BigDecimal horasAtuais = repository.sumHorasByProjetoId(dto.projetoId());
+                horasLimite = projeto.getHorasEstimadas() != null ? projeto.getHorasEstimadas() : BigDecimal.ZERO;
+                BigDecimal novaSoma = horasAtuais.add(dto.horas());
+                
+                if (novaSoma.compareTo(horasLimite) > 0) {
+                    throw new RuntimeException("O apontamento excede as horas estimadas do projeto (" + horasLimite + "h). Saldo atual: " + horasAtuais + "h. Tentativa: " + dto.horas() + "h.");
+                }
             }
         }
+
 
         Apontamento apontamento = Apontamento.builder()
                 .projeto(projeto)

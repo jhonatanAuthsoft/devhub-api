@@ -401,6 +401,14 @@ public class ProjetoServiceImp implements ProjetoService {
     }
 
     @Override
+    public List<ProjetoResponseDTO> listarProjetosPorColaborador(UUID colaboradorId) {
+        return projetoRepository.findDistinctByEquipeColaboradorId(colaboradorId)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public void deletarProjeto(UUID id) {
         if (!projetoRepository.existsById(id)) {

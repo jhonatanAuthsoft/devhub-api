@@ -404,6 +404,8 @@ public class ProjetoServiceImp implements ProjetoService {
     public List<ProjetoResponseDTO> listarProjetosPorColaborador(UUID colaboradorId) {
         return projetoRepository.findDistinctByEquipeColaboradorId(colaboradorId)
                 .stream()
+                // Filtrar apenas projetos SOB_MEDIDA e HORAS_AVULSA (excluir ALOCACAO)
+                .filter(p -> p.getTipoProjeto() == TipoProjeto.SOB_MEDIDA || p.getTipoProjeto() == TipoProjeto.HORAS_AVULSA)
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }

@@ -87,7 +87,13 @@ public class UsuarioServiceImp implements UsuarioService {
         usuario.setNome(cadastraUsuarioDTO.nome());
         usuario.setStatus(UsuarioStatus.ATIVO);
         usuario.setSenha(senhaCriptografada);
-        usuario.setPermissao(PermissaoStatus.ADMIN);
+        
+        // Mapear permissão do DTO (se fornecida, senão COLABORADOR como padrão)
+        if (!StringUtils.isNullOrEmpty(cadastraUsuarioDTO.permissao())) {
+            usuario.setPermissao(PermissaoStatus.valueOf(cadastraUsuarioDTO.permissao()));
+        } else {
+            usuario.setPermissao(PermissaoStatus.COLABORADOR);
+        }
         usuario.setCargo(cadastraUsuarioDTO.cargo());
         usuario.setTelefone(cadastraUsuarioDTO.telefone());
         usuario.setChavePix(cadastraUsuarioDTO.chavePix());
@@ -165,6 +171,9 @@ public class UsuarioServiceImp implements UsuarioService {
         
         if (usuarioDTO.cargo() != null) usuario.setCargo(usuarioDTO.cargo());
         if (usuarioDTO.telefone() != null) usuario.setTelefone(usuarioDTO.telefone());
+        if (!StringUtils.isNullOrEmpty(usuarioDTO.permissao())) {
+            usuario.setPermissao(PermissaoStatus.valueOf(usuarioDTO.permissao()));
+        }
         if (usuarioDTO.chavePix() != null) usuario.setChavePix(usuarioDTO.chavePix());
         if (usuarioDTO.cep() != null) usuario.setCep(usuarioDTO.cep());
         if (usuarioDTO.logradouro() != null) usuario.setLogradouro(usuarioDTO.logradouro());

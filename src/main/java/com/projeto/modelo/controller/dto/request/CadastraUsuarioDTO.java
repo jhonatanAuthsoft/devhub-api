@@ -10,6 +10,7 @@ public record CadastraUsuarioDTO(
         String senha,
         String cargo,
         String telefone,
+        String permissao,
         String chavePix,
         String cep,
         String logradouro,

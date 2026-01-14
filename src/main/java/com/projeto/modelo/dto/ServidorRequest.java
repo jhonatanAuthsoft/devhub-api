@@ -69,4 +69,12 @@ public class ServidorRequest {
     @NotNull(message = "Valor do plano sem fidelidade é obrigatório")
     @DecimalMin(value = "0.01", message = "Valor deve ser maior que zero")
     private BigDecimal planoSemFidelidadeValor;
+
+    @NotNull(message = "Custo do servidor é obrigatório")
+    @DecimalMin(value = "0.00", message = "Custo deve ser maior ou igual a zero")
+    private BigDecimal custoServidor;
+
+    @NotNull(message = "Custo do backup diário é obrigatório")
+    @DecimalMin(value = "0.00", message = "Custo deve ser maior ou igual a zero")
+    private BigDecimal custoBackupDiario;
 }

@@ -38,6 +38,9 @@ public class ServidorResponse {
     private BigDecimal planoUmAnoValor;
     private BigDecimal planoSemFidelidadeValor;
 
+    private BigDecimal custoServidor;
+    private BigDecimal custoBackupDiario;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

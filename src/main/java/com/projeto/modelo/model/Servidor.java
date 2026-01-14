@@ -72,6 +72,13 @@ public class Servidor {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal planoSemFidelidadeValor;
 
+    // Custos
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal custoServidor;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal custoBackupDiario;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -75,7 +75,10 @@ public class ServidorService {
         servidor.setSlaTempoRespostaHoras(request.getSlaTempoRespostaHoras());
         servidor.setPlanoDoisAnosValor(request.getPlanoDoisAnosValor());
         servidor.setPlanoUmAnoValor(request.getPlanoUmAnoValor());
+        // ... existing fields ...
         servidor.setPlanoSemFidelidadeValor(request.getPlanoSemFidelidadeValor());
+        servidor.setCustoServidor(request.getCustoServidor());
+        servidor.setCustoBackupDiario(request.getCustoBackupDiario());
         return servidor;
     }
 
@@ -97,6 +100,8 @@ public class ServidorService {
         response.setPlanoDoisAnosValor(servidor.getPlanoDoisAnosValor());
         response.setPlanoUmAnoValor(servidor.getPlanoUmAnoValor());
         response.setPlanoSemFidelidadeValor(servidor.getPlanoSemFidelidadeValor());
+        response.setCustoServidor(servidor.getCustoServidor());
+        response.setCustoBackupDiario(servidor.getCustoBackupDiario());
         response.setCreatedAt(servidor.getCreatedAt());
         response.setUpdatedAt(servidor.getUpdatedAt());
         return response;
@@ -118,5 +123,7 @@ public class ServidorService {
         servidor.setPlanoDoisAnosValor(request.getPlanoDoisAnosValor());
         servidor.setPlanoUmAnoValor(request.getPlanoUmAnoValor());
         servidor.setPlanoSemFidelidadeValor(request.getPlanoSemFidelidadeValor());
+        servidor.setCustoServidor(request.getCustoServidor());
+        servidor.setCustoBackupDiario(request.getCustoBackupDiario());
     }
 }

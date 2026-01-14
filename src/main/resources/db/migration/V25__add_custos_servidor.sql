@@ -1,0 +1,3 @@
+ALTER TABLE servidores 
+ADD COLUMN custo_servidor NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+ADD COLUMN custo_backup_diario NUMERIC(10,2) NOT NULL DEFAULT 0.00;

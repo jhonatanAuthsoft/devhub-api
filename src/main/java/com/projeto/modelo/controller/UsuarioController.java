@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort;
 
 @RestController
 @RequestMapping(value = "/usuario")
+@org.springframework.web.bind.annotation.CrossOrigin(origins = "http://localhost:3002")
 public class UsuarioController {
 
     @Autowired

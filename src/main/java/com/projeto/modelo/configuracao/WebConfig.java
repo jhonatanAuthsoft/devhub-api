@@ -8,16 +8,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+
+
     @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-                        .allowedHeaders("*");
-            }
-        };
+    public org.springframework.boot.web.servlet.FilterRegistrationBean<SimpleCorsFilter> corsFilter() {
+        org.springframework.boot.web.servlet.FilterRegistrationBean<SimpleCorsFilter> registrationBean = new org.springframework.boot.web.servlet.FilterRegistrationBean<>();
+        registrationBean.setFilter(new SimpleCorsFilter());
+        registrationBean.setOrder(org.springframework.core.Ordered.HIGHEST_PRECEDENCE);
+        return registrationBean;
     }
 }

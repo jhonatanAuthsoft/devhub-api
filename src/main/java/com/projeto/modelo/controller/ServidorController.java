@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/servidores")
+@RequestMapping("/servidores")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class ServidorController {

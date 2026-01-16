@@ -25,4 +25,11 @@ public class RelatorioController {
     public ResponseEntity<List<RelatorioHorasDTO>> getRelatorioHoras() {
         return ResponseEntity.ok(relatorioService.gerarRelatorioHoras());
     }
+
+    @GetMapping("/avancado")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<com.projeto.modelo.dto.relatorio.RelatorioItemDTO>> getRelatorioAvancado(
+            @org.springframework.web.bind.annotation.ModelAttribute com.projeto.modelo.dto.relatorio.RelatorioFiltroDTO filtro) {
+        return ResponseEntity.ok(relatorioService.gerarRelatorioAvancado(filtro));
+    }
 }

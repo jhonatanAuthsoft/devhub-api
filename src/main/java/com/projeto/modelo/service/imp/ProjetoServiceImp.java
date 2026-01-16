@@ -426,8 +426,8 @@ public class ProjetoServiceImp implements ProjetoService {
             p.getTitulo(),
             p.getDescricao(),
             p.getRequisitos(),
-            p.getCliente().getId(),
-            p.getCliente().getNome(),
+            p.getCliente() != null ? p.getCliente().getId() : null, // Null check for Cliente
+            p.getCliente() != null ? p.getCliente().getNome() : "Cliente Desconhecido", // Fallback for Cliente Name
             p.getVendedor() != null ? p.getVendedor().getId() : null,
             p.getVendedor() != null ? p.getVendedor().getNome() : null,
             p.getDataInicio(),
@@ -446,27 +446,30 @@ public class ProjetoServiceImp implements ProjetoService {
             p.getEmitirNf(),
             p.getPermiteUltrapassarHoras(),
             p.getStatus(),
-            p.getLinks().stream().map(this::mapLink).collect(Collectors.toList()),
-            p.getParcelas().stream().map(this::mapParcela).collect(Collectors.toList()),
-            p.getEquipe().stream().map(this::mapEquipe).collect(Collectors.toList()),
+            p.getLinks() != null ? p.getLinks().stream().map(this::mapLink).collect(Collectors.toList()) : new ArrayList<>(),
+            p.getParcelas() != null ? p.getParcelas().stream().map(this::mapParcela).collect(Collectors.toList()) : new ArrayList<>(),
+            p.getEquipe() != null ? p.getEquipe().stream().map(this::mapEquipe).collect(Collectors.toList()) : new ArrayList<>(),
             p.getCreatedAt(),
             p.getUpdatedAt()
         );
     }
 
     private LinkProjetoResponseDTO mapLink(LinkProjeto l) {
+        if (l == null) return null;
         return new LinkProjetoResponseDTO(l.getId(), l.getUrl(), l.getDescricao(), l.getTipoAmbiente(), l.getClassificacao(), l.getObservacao());
     }
 
     private ParcelaProjetoResponseDTO mapParcela(ParcelaProjeto pa) {
+        if (pa == null) return null;
         return new ParcelaProjetoResponseDTO(pa.getId(), pa.getNumero(), pa.getValor(), pa.getDataVencimento(), pa.getStatus());
     }
 
     private EquipeProjetoResponseDTO mapEquipe(EquipeProjeto e) {
+        if (e == null) return null;
         return new EquipeProjetoResponseDTO(
             e.getId(), 
-            e.getColaborador().getId(), 
-            e.getColaborador().getNome(), 
+            e.getColaborador() != null ? e.getColaborador().getId() : null, 
+            e.getColaborador() != null ? e.getColaborador().getNome() : "Colaborador Removido", 
             e.getFuncao(), 
             e.getUsaSalarioFixo(), 
             e.getPorcentagem(),

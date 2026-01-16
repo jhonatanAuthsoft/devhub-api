@@ -110,7 +110,7 @@ public class Usuario extends BaseEntity  implements UserDetails, Serializable {
 
     @Override
     public String getUsername() {
-        return email;
+        return emailAuthsoft != null ? emailAuthsoft : email;
     }
 
     @Override

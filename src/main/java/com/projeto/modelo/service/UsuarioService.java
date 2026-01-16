@@ -18,6 +18,9 @@ public interface UsuarioService {
     @Transactional(readOnly = true)
     Usuario buscarPorEmail(String email);
 
+    @Transactional(readOnly = true)
+    Usuario buscarPorEmailAuthsoft(String emailAuthsoft);
+
     void validaTrocaSenha(ValidaTrocaSenhaRequestDTO validaTrocaSenhaRequestDTO);
 
     UsuarioResposeDTO cadastraUsuario(CadastraUsuarioDTO cadastraUsuarioDTO);

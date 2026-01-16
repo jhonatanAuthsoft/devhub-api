@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface ProjetoRepository extends JpaRepository<Projeto, UUID> {
     List<Projeto> findDistinctByEquipeColaboradorId(UUID colaboradorId);
+    List<Projeto> findByTipoProjetoIn(List<com.projeto.modelo.model.enums.TipoProjeto> tipos);
 }

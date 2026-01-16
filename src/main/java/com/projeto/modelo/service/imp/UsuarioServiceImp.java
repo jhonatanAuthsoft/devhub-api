@@ -48,8 +48,8 @@ public class UsuarioServiceImp implements UsuarioService {
 
     @Transactional(readOnly = true)
     @Override
-    public AuthenticatedResposeDTO retornoAutenticacao(String email, String jwt){
-        UsuarioResposeDTO responseDTO = this.usuarioMapper.toResponseDTO(this.buscarPorEmail(email));
+    public AuthenticatedResposeDTO retornoAutenticacao(String emailAuthsoft, String jwt){
+        UsuarioResposeDTO responseDTO = this.usuarioMapper.toResponseDTO(this.buscarPorEmailAuthsoft(emailAuthsoft));
 
         return AuthenticatedResposeDTO.builder()
                 .usuarioRespose(responseDTO)
@@ -61,6 +61,13 @@ public class UsuarioServiceImp implements UsuarioService {
     @Override
     public Usuario buscarPorEmail(String email) {
         return usuarioRepository.findByEmail(email).orElseThrow(() -> new ExcecoesCustomizada("Usuário não encontrado", HttpStatus.NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Usuario buscarPorEmailAuthsoft(String emailAuthsoft) {
+        return usuarioRepository.findByEmailAuthsoft(emailAuthsoft)
+                .orElseThrow(() -> new ExcecoesCustomizada("Usuário não encontrado com este e-mail Authsoft", HttpStatus.NOT_FOUND));
     }
 
     @Override

@@ -22,8 +22,8 @@ public class UserDetailsServiceImp implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Usuario user = this.usuarioRepository.findByEmail(username.toLowerCase())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        Usuario user = this.usuarioRepository.findByEmailAuthsoft(username.toLowerCase())
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail Authsoft: " + username));
 
         String permissao = user.getPermissao().toString();
 

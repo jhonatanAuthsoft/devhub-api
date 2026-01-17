@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +25,11 @@ public class ApontamentoController {
     }
 
     @GetMapping("/projeto/{projetoId}")
-    public ResponseEntity<List<ApontamentoResponseDTO>> listarPorProjeto(@PathVariable UUID projetoId) {
-        return ResponseEntity.ok(service.listarPorProjeto(projetoId));
+    public ResponseEntity<List<ApontamentoResponseDTO>> listarPorProjeto(
+            @PathVariable UUID projetoId,
+            @RequestParam(required = false) LocalDate dataInicio,
+            @RequestParam(required = false) LocalDate dataFim
+    ) {
+        return ResponseEntity.ok(service.listarPorProjeto(projetoId, dataInicio, dataFim));
     }
 }

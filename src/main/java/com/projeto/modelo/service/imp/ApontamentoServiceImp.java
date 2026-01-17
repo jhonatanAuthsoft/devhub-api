@@ -12,6 +12,7 @@ import com.projeto.modelo.service.ApontamentoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -86,8 +87,15 @@ public class ApontamentoServiceImp implements ApontamentoService {
     }
 
     @Override
-    public List<ApontamentoResponseDTO> listarPorProjeto(UUID projetoId) {
-        return repository.findByProjetoId(projetoId).stream()
+    public List<ApontamentoResponseDTO> listarPorProjeto(UUID projetoId, LocalDate dataInicio, LocalDate dataFim) {
+        List<Apontamento> apontamentos;
+        if (dataInicio != null && dataFim != null) {
+            apontamentos = repository.findByProjetoIdAndDataApontamentoBetween(projetoId, dataInicio, dataFim);
+        } else {
+             apontamentos = repository.findByProjetoId(projetoId);
+        }
+        
+        return apontamentos.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }

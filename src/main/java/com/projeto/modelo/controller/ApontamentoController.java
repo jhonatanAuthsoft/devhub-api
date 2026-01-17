@@ -28,8 +28,9 @@ public class ApontamentoController {
     public ResponseEntity<List<ApontamentoResponseDTO>> listarPorProjeto(
             @PathVariable UUID projetoId,
             @RequestParam(required = false) LocalDate dataInicio,
-            @RequestParam(required = false) LocalDate dataFim
+            @RequestParam(required = false) LocalDate dataFim,
+            @RequestParam(required = false) UUID colaboradorId
     ) {
-        return ResponseEntity.ok(service.listarPorProjeto(projetoId, dataInicio, dataFim));
+        return ResponseEntity.ok(service.listarPorProjeto(projetoId, dataInicio, dataFim, colaboradorId));
     }
 }

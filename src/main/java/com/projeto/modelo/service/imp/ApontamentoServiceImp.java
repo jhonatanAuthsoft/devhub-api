@@ -87,13 +87,33 @@ public class ApontamentoServiceImp implements ApontamentoService {
     }
 
     @Override
-    public List<ApontamentoResponseDTO> listarPorProjeto(UUID projetoId, LocalDate dataInicio, LocalDate dataFim) {
-        List<Apontamento> apontamentos;
-        if (dataInicio != null && dataFim != null) {
-            apontamentos = repository.findByProjetoIdAndDataApontamentoBetween(projetoId, dataInicio, dataFim);
-        } else {
-             apontamentos = repository.findByProjetoId(projetoId);
-        }
+    public List<ApontamentoResponseDTO> listarPorProjeto(UUID projetoId, LocalDate dataInicio, LocalDate dataFim, UUID colaboradorId) {
+        org.springframework.data.jpa.domain.Specification<Apontamento> spec = (root, query, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+            
+            if (projetoId != null) {
+                predicates.add(cb.equal(root.get("projeto").get("id"), projetoId));
+            }
+
+            if (colaboradorId != null) {
+                predicates.add(cb.equal(root.get("colaborador").get("id"), colaboradorId));
+            }
+            
+            if (dataInicio != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("dataApontamento"), dataInicio));
+            }
+            
+            if (dataFim != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("dataApontamento"), dataFim));
+            }
+
+            // Order by date descending
+            query.orderBy(cb.desc(root.get("dataApontamento")));
+            
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+
+        List<Apontamento> apontamentos = repository.findAll(spec);
         
         return apontamentos.stream()
                 .map(this::mapToDTO)

@@ -96,12 +96,29 @@ public class RelatorioService {
     }
 
     public List<RelatorioItemDTO> gerarRelatorioAvancado(RelatorioFiltroDTO filtro) {
-        List<Apontamento> apontamentos = apontamentoRepository.findPorFiltros(
-                filtro.getProjetoId(),
-                filtro.getColaboradorId(),
-                filtro.getDataInicio(),
-                filtro.getDataFim()
-        );
+        org.springframework.data.jpa.domain.Specification<Apontamento> spec = (root, query, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            
+            if (filtro.getProjetoId() != null) {
+                predicates.add(cb.equal(root.get("projeto").get("id"), filtro.getProjetoId()));
+            }
+            
+            if (filtro.getColaboradorId() != null) {
+                predicates.add(cb.equal(root.get("colaborador").get("id"), filtro.getColaboradorId()));
+            }
+            
+            if (filtro.getDataInicio() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("dataApontamento"), filtro.getDataInicio()));
+            }
+            
+            if (filtro.getDataFim() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("dataApontamento"), filtro.getDataFim()));
+            }
+            
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+
+        List<Apontamento> apontamentos = apontamentoRepository.findAll(spec);
 
         boolean porColaborador = "COLABORADOR".equalsIgnoreCase(filtro.getAgrupamento());
         List<RelatorioItemDTO> resultado = new ArrayList<>();

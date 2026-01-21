@@ -8,5 +8,6 @@ import java.util.UUID;
 
 public interface ApontamentoService {
     ApontamentoResponseDTO cadastrar(CadastrarApontamentoDTO dto);
+    ApontamentoResponseDTO atualizar(UUID id, CadastrarApontamentoDTO dto);
     List<ApontamentoResponseDTO> listarPorProjeto(UUID projetoId, java.time.LocalDate dataInicio, java.time.LocalDate dataFim, UUID colaboradorId);
 }

@@ -24,6 +24,11 @@ public class ApontamentoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.cadastrar(dto));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ApontamentoResponseDTO> atualizar(@PathVariable UUID id, @RequestBody CadastrarApontamentoDTO dto) {
+        return ResponseEntity.ok(service.atualizar(id, dto));
+    }
+
     @GetMapping("/projeto/{projetoId}")
     public ResponseEntity<List<ApontamentoResponseDTO>> listarPorProjeto(
             @PathVariable UUID projetoId,

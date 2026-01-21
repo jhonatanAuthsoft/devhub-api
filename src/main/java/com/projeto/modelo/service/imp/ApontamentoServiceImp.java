@@ -87,6 +87,40 @@ public class ApontamentoServiceImp implements ApontamentoService {
     }
 
     @Override
+    public ApontamentoResponseDTO atualizar(UUID id, CadastrarApontamentoDTO dto) {
+        Apontamento apontamento = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Apontamento não encontrado"));
+
+        // Validar mês corrente (Data Original)
+        // Usar LocalDate.now() para garantir validação contra a data atual do servidor
+        LocalDate hoje = LocalDate.now();
+        if (apontamento.getDataApontamento().getMonth() != hoje.getMonth() || 
+            apontamento.getDataApontamento().getYear() != hoje.getYear()) {
+            throw new RuntimeException("Não é possível alterar apontamentos de meses anteriores.");
+        }
+
+        // Validar mês corrente (Nova Data)
+        if (dto.dataApontamento().getMonth() != hoje.getMonth() || 
+            dto.dataApontamento().getYear() != hoje.getYear()) {
+            throw new RuntimeException("A nova data do apontamento deve ser dentro do mês atual.");
+        }
+        
+        // Atualizar campos permitidos
+        apontamento.setDataApontamento(dto.dataApontamento());
+        apontamento.setHoras(dto.horas());
+        apontamento.setDescricao(dto.descricao());
+        
+        // Se necessário atualizar projeto/colaborador, descomentar abaixo, 
+        // mas geralmente edição rápida é só dados. Se mudar projeto, precisaria revalidar regras de projeto.
+        // Por simplificação e segurança, manteremos no mesmo projeto/colaborador por enquanto ou assumimos que o DTO traz os mesmos.
+        // Se o DTO trouxer projeto diferente, teríamos que buscar e setar. 
+        // Vamos assumir que a edição é focada em corrigir o lançamento (hora/descrição/dia).
+        
+        apontamento = repository.save(apontamento);
+        return mapToDTO(apontamento);
+    }
+
+    @Override
     public List<ApontamentoResponseDTO> listarPorProjeto(UUID projetoId, LocalDate dataInicio, LocalDate dataFim, UUID colaboradorId) {
         org.springframework.data.jpa.domain.Specification<Apontamento> spec = (root, query, cb) -> {
             List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
@@ -123,6 +157,7 @@ public class ApontamentoServiceImp implements ApontamentoService {
     private ApontamentoResponseDTO mapToDTO(Apontamento a) {
         return new ApontamentoResponseDTO(
                 a.getId(),
+                a.getProjeto().getId(),
                 a.getProjeto().getTitulo(),
                 a.getColaborador().getNome(),
                 a.getDataApontamento(),

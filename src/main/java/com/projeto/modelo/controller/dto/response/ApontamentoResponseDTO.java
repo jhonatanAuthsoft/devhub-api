@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public record ApontamentoResponseDTO(
     UUID id,
+    UUID projetoId,
     String projetoTitulo,
     String colaboradorNome,
     LocalDate dataApontamento,

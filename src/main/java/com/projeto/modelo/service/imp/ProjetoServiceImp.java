@@ -404,8 +404,23 @@ public class ProjetoServiceImp implements ProjetoService {
     public List<ProjetoResponseDTO> listarProjetosPorColaborador(UUID colaboradorId) {
         return projetoRepository.findDistinctByEquipeColaboradorId(colaboradorId)
                 .stream()
-                // Filtrar apenas projetos SOB_MEDIDA e HORAS_AVULSA (excluir ALOCACAO)
-                .filter(p -> p.getTipoProjeto() == TipoProjeto.SOB_MEDIDA || p.getTipoProjeto() == TipoProjeto.HORAS_AVULSA)
+                .filter(p -> {
+                    // 1. Tipos permitidos
+                    boolean tipoValido = p.getTipoProjeto() == TipoProjeto.SOB_MEDIDA ||
+                                         p.getTipoProjeto() == TipoProjeto.HORAS_AVULSA ||
+                                         p.getTipoProjeto() == TipoProjeto.ALOCACAO ||
+                                         p.getTipoProjeto() == TipoProjeto.REPASSE_DE_DEMANDA;
+                    
+                    if (!tipoValido) return false;
+
+                    // 2. Filtrar se o colaborador TEM usaSalarioFixo == false neste projeto
+                    // Aplica para TODOS os tipos (SOB_MEDIDA, AVULSA, ALOCACAO)
+                    return p.getEquipe().stream()
+                            .filter(e -> e.getColaborador().getId().equals(colaboradorId))
+                            .findFirst()
+                            .map(e -> Boolean.FALSE.equals(e.getUsaSalarioFixo())) 
+                            .orElse(false); 
+                })
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }

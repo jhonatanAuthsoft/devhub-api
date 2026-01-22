@@ -39,9 +39,9 @@ public class ApontamentoServiceImp implements ApontamentoService {
         // Verificar se o colaborador usa salário fixo neste projeto
         Boolean usaSalarioFixo = repository.findUsaSalarioFixoByProjetoAndColaborador(dto.projetoId(), dto.colaboradorId());
         
-        // Se usa salário fixo, não aplicar validação de horas
-        if (Boolean.TRUE.equals(usaSalarioFixo)) {
-            // Colaborador com salário fixo pode lançar horas ilimitadas
+        // Se usa salário fixo OU é ALOCACAO, não aplicar validação de horas
+        if (Boolean.TRUE.equals(usaSalarioFixo) || "ALOCACAO".equals(projeto.getTipoProjeto().toString()) || "REPASSE_DE_DEMANDA".equals(projeto.getTipoProjeto().toString())) {
+            // Colaborador com salário fixo ou em projeto de Alocação pode lançar horas ilimitadas
         } else if (!Boolean.TRUE.equals(projeto.getPermiteUltrapassarHoras())) {
             // Para projetos SOB_MEDIDA, validar contra as horas alocadas para o colaborador específico
             // Para outros tipos (ALOCACAO, HORAS_AVULSA), validar contra horas estimadas do projeto

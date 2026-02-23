@@ -12,14 +12,14 @@ import java.io.InputStream;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Random;
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.mail.*;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,8 +103,37 @@ public class EmailServiceImp implements EmailService {
         }
     }
 
+    @Async
+    @Override
+    public void enviarAlertaHorasPendentes(String toEmail, String nomeColaborador, String nomeProjeto) {
+        try {
+            String corpoEmail = this.corpoAlertaHorasPendentes(nomeColaborador, nomeProjeto);
+            this.enviaEmail(toEmail, corpoEmail, "Aviso DevHub - Registro de Horas Pendente");
+        } catch (Exception e) {
+            log.error("Erro ao enviar e-mail de alerta de horas pendentes", e);
+        }
+    }
+
     private String corpoEsqueceuSenha(int codigoVerificador) throws IOException {
         return TemplateUtils.htmlToString(esqueceuSenha).replace("#codigo#", String.valueOf(codigoVerificador));
+    }
+
+    private String corpoAlertaHorasPendentes(String nomeColaborador, String nomeProjeto) {
+        return "<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;\">" +
+               "<div style=\"background-color: #f8f9fa; padding: 20px; text-align: center; border-bottom: 3px solid #007bff;\">" +
+               "<h2 style=\"color: #007bff; margin: 0;\">DevHub - Alerta de Horas</h2>" +
+               "</div>" +
+               "<div style=\"padding: 30px 20px;\">" +
+               "<p style=\"font-size: 16px;\">Olá <strong>" + nomeColaborador + "</strong>,</p>" +
+               "<p style=\"font-size: 16px; line-height: 1.5;\">Verificamos que não há registro de horas da sua parte no projeto <strong>" + nomeProjeto + "</strong> nos últimos dias.</p>" +
+               "<p style=\"font-size: 16px; line-height: 1.5;\">Lembre-se de manter seus apontamentos atualizados na plataforma para o correto acompanhamento do projeto.</p>" +
+               "<div style=\"text-align: center; margin: 30px 0;\">" +
+               "<a href=\"http://localhost:3002/lancamento-horas\" style=\"background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;\">Registrar Horas Agora</a>" +
+               "</div>" +
+               "</div>" +
+               "<div style=\"text-align: center; font-size: 12px; color: #777; padding-top: 20px; border-top: 1px solid #eee;\">" +
+               "<p>Este é um e-mail automático enviado pelo sistema DevHub. Por favor, não responda.</p>" +
+               "</div></div>";
     }
 
     private String corpoCadastroUsuario(String senha) throws IOException {

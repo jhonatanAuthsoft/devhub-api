@@ -15,6 +15,7 @@ import java.util.UUID;
 public class NotificacaoController {
 
     private final NotificacaoService notificacaoService;
+    private final com.projeto.modelo.scheduler.AlertaApontamentoScheduler alertaApontamentoScheduler;
 
     @GetMapping("/usuario/{usuarioId}/nao-lidas")
     public ResponseEntity<List<NotificacaoResponseDTO>> listarNaoLidasPorUsuario(@PathVariable UUID usuarioId) {

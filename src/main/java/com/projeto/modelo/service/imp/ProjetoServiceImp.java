@@ -7,7 +7,8 @@ import com.projeto.modelo.model.entity.*;
 import com.projeto.modelo.model.enums.*;
 import com.projeto.modelo.repository.*;
 import com.projeto.modelo.service.ProjetoService;
-import jakarta.transaction.Transactional;
+import com.projeto.modelo.service.ReceitaService;
+import jakarta.transaction.Transactional; 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,8 @@ public class ProjetoServiceImp implements ProjetoService {
     private final PessoaRepository pessoaRepository;
     private final UsuarioRepository usuarioRepository;
     private final MetaRepository metaRepository;
+    private final ReceitaService receitaService;
+    private final CategoriaRepository categoriaRepository;
 
     @Override
     @Transactional
@@ -245,6 +248,56 @@ public class ProjetoServiceImp implements ProjetoService {
 
         // Salvar tudo (Cascade ALL cuida dos filhos)
         Projeto projetoSalvo = projetoRepository.save(projeto);
+
+        if (dto.contaBancariaId() != null) {
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            Usuario usuarioLogado = (auth != null && auth.getPrincipal() instanceof Usuario) ? (Usuario) auth.getPrincipal() : null;
+
+            String nomeCategoria = "Projeto " + projetoSalvo.getTipoProjeto().name().replace("_", " ");
+            Categoria categoria = categoriaRepository.findByNomeIgnoreCase(nomeCategoria).orElseGet(() -> {
+                return categoriaRepository.save(Categoria.builder()
+                        .nome(nomeCategoria)
+                        .preConfigurada(true)
+                        .ativo(true)
+                        .build());
+            });
+
+            ReceitaRequestDTO receitaDto = new ReceitaRequestDTO();
+            receitaDto.setDescricao(projetoSalvo.getTitulo());
+            receitaDto.setDataVencimento(projetoSalvo.getDataInicio() != null ? projetoSalvo.getDataInicio() : LocalDate.now());
+            receitaDto.setCategoriaId(categoria.getId());
+            receitaDto.setProjetoId(projetoSalvo.getId());
+            receitaDto.setContaBancariaId(dto.contaBancariaId());
+
+            if (projetoSalvo.getParcelas() != null && !projetoSalvo.getParcelas().isEmpty()) {
+                receitaDto.setTipoRecorrencia(TipoRecorrencia.PARCELADA);
+                receitaDto.setModoDistribuicao("PERSONALIZADO");
+                receitaDto.setValorTotal(projetoSalvo.getValorTotal() != null ? projetoSalvo.getValorTotal() : BigDecimal.ZERO);
+
+                List<ParcelaPersonalizadaDTO> parcs = new ArrayList<>();
+                for (ParcelaProjeto p : projetoSalvo.getParcelas()) {
+                    ParcelaPersonalizadaDTO pp = new ParcelaPersonalizadaDTO();
+                    pp.setValor(p.getValor());
+                    pp.setDataVencimento(p.getDataVencimento());
+                    parcs.add(pp);
+                }
+                receitaDto.setParcelasPersonalizadas(parcs);
+                receitaDto.setQuantidadeParcelas(parcs.size());
+            } else if (projetoSalvo.getValorContratoMensal() != null && projetoSalvo.getValorContratoMensal().compareTo(BigDecimal.ZERO) > 0) {
+                receitaDto.setTipoRecorrencia(TipoRecorrencia.RECORRENTE);
+                receitaDto.setPeriodicidade(Periodicidade.MENSAL);
+                receitaDto.setValorPrevisto(projetoSalvo.getValorContratoMensal());
+            } else {
+                receitaDto.setTipoRecorrencia(TipoRecorrencia.UNICA);
+                receitaDto.setValorPrevisto(projetoSalvo.getValorTotal() != null ? projetoSalvo.getValorTotal() : BigDecimal.ZERO);
+            }
+
+            try {
+                receitaService.criar(receitaDto, usuarioLogado);
+            } catch (Exception e) {
+                throw new ExcecoesCustomizada("Erro ao gerar parcelas no financeiro: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
+        }
 
         return mapToDTO(projetoSalvo);
     }

@@ -31,6 +31,10 @@ public class ContaBancaria extends BaseAuditableEntity {
     @Column(name = "ativo")
     private Boolean ativo = true;
 
+    @Builder.Default
+    @Column(name = "emite_boleto")
+    private Boolean emiteBoleto = false;
+
     // Getters and Setters extra
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -40,4 +44,7 @@ public class ContaBancaria extends BaseAuditableEntity {
 
     public Boolean getAtivo() { return ativo; }
     public void setAtivo(Boolean ativo) { this.ativo = ativo; }
+
+    public Boolean getEmiteBoleto() { return emiteBoleto; }
+    public void setEmiteBoleto(Boolean emiteBoleto) { this.emiteBoleto = emiteBoleto; }
 }

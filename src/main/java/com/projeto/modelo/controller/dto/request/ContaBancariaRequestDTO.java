@@ -8,4 +8,5 @@ public class ContaBancariaRequestDTO {
     private String nome;
     private BigDecimal saldoInicial;
     private Boolean ativo;
+    private Boolean emiteBoleto;
 }

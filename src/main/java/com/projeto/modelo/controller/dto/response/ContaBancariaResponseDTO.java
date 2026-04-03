@@ -14,6 +14,7 @@ public class ContaBancariaResponseDTO {
     private String nome;
     private BigDecimal saldoAtual;
     private Boolean ativo;
+    private Boolean emiteBoleto;
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;
 
@@ -23,6 +24,7 @@ public class ContaBancariaResponseDTO {
                 .nome(entity.getNome())
                 .saldoAtual(entity.getSaldoAtual())
                 .ativo(entity.getAtivo())
+                .emiteBoleto(entity.getEmiteBoleto())
                 .dataCriacao(entity.getDataCriacao())
                 .dataAtualizacao(entity.getDataAtualizacao())
                 .build();

@@ -11,7 +11,8 @@ public enum TipoProjeto {
     SOFTWARE_SOB_MEDIDA("Software Sob Medida"),
     TERMO_ENTREGA_PRODUCAO("Termo de Entrega em Produção"),
     TERMO_FIM_DESENVOLVIMENTO("Termo de Fim de Desenvolvimento"),
-    TERMO_VALIDACAO_REQUSITOS("Termo de Validação de Requisitos");
+    TERMO_VALIDACAO_REQUSITOS("Termo de Validação de Requisitos"),
+    SMP("Solicitação de Mudança de Projeto");
 
     private String descricao;
 

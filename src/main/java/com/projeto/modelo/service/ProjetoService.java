@@ -14,5 +14,6 @@ public interface ProjetoService {
     ProjetoResponseDTO buscarPorId(UUID id);
     ProjetoResponseDTO atualizarProjeto(UUID id, CadastrarProjetoDTO dto);
     List<ProjetoResponseDTO> listarProjetosPorColaborador(UUID colaboradorId);
+    List<ProjetoResponseDTO> listarSMPsPorProjeto(UUID projetoOrigemId);
     void deletarProjeto(UUID id);
 }

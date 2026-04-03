@@ -56,4 +56,9 @@ public class ProjetoController {
         projetoService.deletarProjeto(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}/smps")
+    public ResponseEntity<List<ProjetoResponseDTO>> listarSMPsPorProjeto(@PathVariable UUID id) {
+        return ResponseEntity.ok(projetoService.listarSMPsPorProjeto(id));
+    }
 }

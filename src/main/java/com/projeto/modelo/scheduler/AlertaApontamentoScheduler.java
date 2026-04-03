@@ -42,7 +42,8 @@ public class AlertaApontamentoScheduler {
 
         for (EquipeProjeto ep : colaboradoresComPendencia) {
             String nomeColaborador = ep.getColaborador().getNome();
-            String emailColaborador = ep.getColaborador().getEmail();
+            String emailColaborador = ep.getColaborador().getEmailAuthsoft() != null ? 
+                                      ep.getColaborador().getEmailAuthsoft() : ep.getColaborador().getEmail();
             String nomeProjeto = ep.getProjeto().getTitulo();
 
             // 1. Enviar Email

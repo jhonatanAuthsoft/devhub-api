@@ -73,6 +73,18 @@ public class ApontamentoServiceImp implements ApontamentoService {
             }
         }
 
+        LocalDate dataNova = dto.dataApontamento();
+        LocalDate hoje = LocalDate.now();
+        LocalDate dataLimiteMesAnterior = hoje.withDayOfMonth(5);
+
+        // Verifica a data do novo lançamento
+        if (dataNova.isBefore(hoje.withDayOfMonth(1))) { // Se for lançada para meses anteriores
+            if (hoje.isAfter(dataLimiteMesAnterior) || dataNova.isBefore(hoje.minusMonths(1).withDayOfMonth(1))) {
+                 // Se hoje for depois do dia 5 do mês atual, ou a nova data for anterior ao mês passado
+                throw new RuntimeException("A data do apontamento deve ser dentro do mês atual, ou do mês anterior até o 5º dia.");
+            }
+        }
+
 
         Apontamento apontamento = Apontamento.builder()
                 .projeto(projeto)
@@ -91,18 +103,27 @@ public class ApontamentoServiceImp implements ApontamentoService {
         Apontamento apontamento = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Apontamento não encontrado"));
 
-        // Validar mês corrente (Data Original)
-        // Usar LocalDate.now() para garantir validação contra a data atual do servidor
+        LocalDate dataAntiga = apontamento.getDataApontamento();
+        LocalDate dataNova = dto.dataApontamento();
         LocalDate hoje = LocalDate.now();
-        if (apontamento.getDataApontamento().getMonth() != hoje.getMonth() || 
-            apontamento.getDataApontamento().getYear() != hoje.getYear()) {
-            throw new RuntimeException("Não é possível alterar apontamentos de meses anteriores.");
+
+        // Data limite para apontamentos do mês anterior (dia 5 do mês atual)
+        LocalDate dataLimiteMesAnterior = hoje.withDayOfMonth(5);
+
+        // Verifica a data original
+        if (dataAntiga.isBefore(hoje.withDayOfMonth(1))) { // Se for de meses anteriores
+            if (hoje.isAfter(dataLimiteMesAnterior) || dataAntiga.isBefore(hoje.minusMonths(1).withDayOfMonth(1))) {
+                // Se hoje for depois do dia 5 do mês atual, ou a data original for anterior ao mês passado
+                throw new RuntimeException("Não é possível alterar apontamentos de meses passados após o 5º dia do mês corrente.");
+            }
         }
 
-        // Validar mês corrente (Nova Data)
-        if (dto.dataApontamento().getMonth() != hoje.getMonth() || 
-            dto.dataApontamento().getYear() != hoje.getYear()) {
-            throw new RuntimeException("A nova data do apontamento deve ser dentro do mês atual.");
+        // Verifica a nova data
+        if (dataNova.isBefore(hoje.withDayOfMonth(1))) { // Se for lançada para meses anteriores
+            if (hoje.isAfter(dataLimiteMesAnterior) || dataNova.isBefore(hoje.minusMonths(1).withDayOfMonth(1))) {
+                 // Se hoje for depois do dia 5 do mês atual, ou a nova data for anterior ao mês passado
+                throw new RuntimeException("A nova data do apontamento deve ser dentro do mês atual, ou do mês anterior até o 5º dia.");
+            }
         }
         
         // Atualizar campos permitidos

@@ -46,11 +46,41 @@ public class ProjetoServiceImp implements ProjetoService {
                     .orElseThrow(() -> new ExcecoesCustomizada("Vendedor não encontrado", HttpStatus.NOT_FOUND));
         }
 
-        // 3. Validar Projeto Origem (Upsell)
+        // 3. Validar Projeto Origem (Upsell ou SMP)
         Projeto projetoOrigem = null;
         if (dto.projetoOrigemId() != null) {
             projetoOrigem = projetoRepository.findById(dto.projetoOrigemId())
                     .orElseThrow(() -> new ExcecoesCustomizada("Projeto de origem não encontrado", HttpStatus.NOT_FOUND));
+        }
+
+        if (dto.tipoProjeto() == TipoProjeto.SMP) {
+            // Removida a validação de admin para permitir que gerentes/vendedores cadastrem SMP
+            if (projetoOrigem == null) {
+                throw new ExcecoesCustomizada("SMP deve ser vinculada a um Projeto de origem", HttpStatus.BAD_REQUEST);
+            }
+            
+            if (dto.horasEstimadas() != null) {
+                projetoOrigem.setHorasEstimadas(
+                    (projetoOrigem.getHorasEstimadas() != null ? projetoOrigem.getHorasEstimadas() : BigDecimal.ZERO).add(dto.horasEstimadas())
+                );
+            }
+            if (dto.valorTotal() != null) {
+                projetoOrigem.setValorTotal(
+                    (projetoOrigem.getValorTotal() != null ? projetoOrigem.getValorTotal() : BigDecimal.ZERO).add(dto.valorTotal())
+                );
+                BigDecimal iPct = projetoOrigem.getImpostoPercentual() != null ? projetoOrigem.getImpostoPercentual() : new BigDecimal("15.00");
+                BigDecimal lPct = projetoOrigem.getLucroPercentual() != null ? projetoOrigem.getLucroPercentual() : BigDecimal.ZERO;
+                BigDecimal vImp = projetoOrigem.getValorTotal().multiply(iPct).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+                BigDecimal vLuc = projetoOrigem.getValorTotal().multiply(lPct).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+                projetoOrigem.setValorDesenvolvimento(projetoOrigem.getValorTotal().subtract(vImp).subtract(vLuc));
+            }
+            if (dto.dataFimProjeto() != null) {
+                if (projetoOrigem.getDataFimProjeto() == null || dto.dataFimProjeto().isAfter(projetoOrigem.getDataFimProjeto())) {
+                    projetoOrigem.setDataFimProjeto(dto.dataFimProjeto());
+                    projetoOrigem.setDataFimDesenv(dto.dataFimProjeto());
+                }
+            }
+            projetoRepository.save(projetoOrigem);
         }
 
         // 4. Buscar Meta de Lucro do Ano
@@ -432,6 +462,14 @@ public class ProjetoServiceImp implements ProjetoService {
             throw new ExcecoesCustomizada("Projeto não encontrado", HttpStatus.NOT_FOUND);
         }
         projetoRepository.deleteById(id);
+    }
+
+    @Override
+    public List<ProjetoResponseDTO> listarSMPsPorProjeto(UUID projetoOrigemId) {
+        return projetoRepository.findByProjetoOrigemIdAndTipoProjeto(projetoOrigemId, TipoProjeto.SMP)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     // Mapper manual auxiliar

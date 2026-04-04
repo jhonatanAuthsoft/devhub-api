@@ -1,6 +1,7 @@
 package com.projeto.modelo.controller.dto.response;
 
 import com.projeto.modelo.model.entity.Categoria;
+import com.projeto.modelo.model.enums.TipoCategoria;
 import lombok.Builder;
 import lombok.Data;
 import java.util.UUID;
@@ -16,6 +17,7 @@ public class CategoriaResponseDTO {
     private String paiNome;
     private Boolean preConfigurada;
     private Boolean ativo;
+    private TipoCategoria tipo;
     private List<CategoriaResponseDTO> filhas;
 
     public static CategoriaResponseDTO fromEntity(Categoria entity) {
@@ -26,6 +28,7 @@ public class CategoriaResponseDTO {
                 .paiNome(entity.getPai() != null ? entity.getPai().getNome() : null)
                 .preConfigurada(entity.getPreConfigurada())
                 .ativo(entity.getAtivo())
+                .tipo(entity.getTipo())
                 .filhas((entity.getFilhas() != null && !entity.getFilhas().isEmpty()) ? 
                         entity.getFilhas().stream().map(CategoriaResponseDTO::fromEntitySemFilhas).collect(Collectors.toList()) : null)
                 .build();
@@ -39,6 +42,7 @@ public class CategoriaResponseDTO {
                 .paiNome(entity.getPai() != null ? entity.getPai().getNome() : null)
                 .preConfigurada(entity.getPreConfigurada())
                 .ativo(entity.getAtivo())
+                .tipo(entity.getTipo())
                 .build();
     }
 }

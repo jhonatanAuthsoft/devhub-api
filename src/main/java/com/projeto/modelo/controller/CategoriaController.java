@@ -6,6 +6,7 @@ import com.projeto.modelo.service.CategoriaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.projeto.modelo.model.enums.TipoCategoria;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,13 +29,13 @@ public class CategoriaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CategoriaResponseDTO>> listarTodos() {
-        return ResponseEntity.ok(service.listarTodos());
+    public ResponseEntity<List<CategoriaResponseDTO>> listarTodos(@RequestParam(required = false) TipoCategoria tipo) {
+        return ResponseEntity.ok(service.listarTodos(tipo));
     }
 
     @GetMapping("/raizes")
-    public ResponseEntity<List<CategoriaResponseDTO>> listarRaizes() {
-        return ResponseEntity.ok(service.listarRaizes());
+    public ResponseEntity<List<CategoriaResponseDTO>> listarRaizes(@RequestParam(required = false) TipoCategoria tipo) {
+        return ResponseEntity.ok(service.listarRaizes(tipo));
     }
 
     @PutMapping("/{id}")

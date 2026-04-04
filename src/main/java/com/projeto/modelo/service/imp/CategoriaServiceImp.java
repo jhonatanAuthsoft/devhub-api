@@ -3,14 +3,15 @@ package com.projeto.modelo.service.imp;
 import com.projeto.modelo.controller.dto.request.CategoriaRequestDTO;
 import com.projeto.modelo.controller.dto.response.CategoriaResponseDTO;
 import com.projeto.modelo.model.entity.Categoria;
+import com.projeto.modelo.model.enums.TipoCategoria;
 import com.projeto.modelo.repository.CategoriaRepository;
-// import com.projeto.modelo.repository.ReceitaRepository;
 import com.projeto.modelo.service.CategoriaService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,40 +21,52 @@ import java.util.stream.Collectors;
 public class CategoriaServiceImp implements CategoriaService {
 
     private final CategoriaRepository repository;
-    // private final ReceitaRepository receitaRepository; // TODO uncomment when Receita is mapped to use it here for delete validation
 
     @PostConstruct
     @Transactional
     public void seedCategoriasPreConfiguradas() {
         if (repository.count() > 0) return;
 
-        Categoria operacionais = criarPai("Receitas Operacionais");
-        criarFilha("Alocação de servidor", operacionais);
-        criarFilha("Sofware sob medidida", operacionais);
-        criarFilha("Alocação", operacionais);
-        criarFilha("Sociedade com outras empresas", operacionais);
+        // Receitas
+        Categoria operacionais = criarPai("Receitas Operacionais", TipoCategoria.RECEITA);
+        criarFilha("Alocação de Servidor", operacionais, TipoCategoria.RECEITA);
+        criarFilha("Software Sob Medida", operacionais, TipoCategoria.RECEITA);
+        criarFilha("Alocação", operacionais, TipoCategoria.RECEITA);
+        criarFilha("Sociedade com Outras Empresas", operacionais, TipoCategoria.RECEITA);
         
-        Categoria financeiras = criarPai("Receitas Financeiras");
-        criarFilha("Juros recebidos", financeiras);
-        criarFilha("Rendimentos de aplicação", financeiras);
-        criarFilha("Descontos obtidos", financeiras);
-        criarFilha("Emprestimo", financeiras);
+        Categoria financeiras = criarPai("Receitas Financeiras", TipoCategoria.RECEITA);
+        criarFilha("Juros Recebidos", financeiras, TipoCategoria.RECEITA);
+        criarFilha("Rendimentos de Aplicação", financeiras, TipoCategoria.RECEITA);
+        criarFilha("Descontos Obtidos", financeiras, TipoCategoria.RECEITA);
         
-        Categoria outras = criarPai("Outras Receitas");
-        criarFilha("Aluguéis recebidos", outras);
-        criarFilha("Reembolsos", outras);
-        criarFilha("Receitas eventuais", outras);
-        criarFilha("Investimento", outras);
-        criarFilha("Agua", outras);
-        criarFilha("Luz", outras);
+        Categoria outrasReceitas = criarPai("Outras Receitas", TipoCategoria.RECEITA);
+        criarFilha("Aportes e Investimentos", outrasReceitas, TipoCategoria.RECEITA);
+
+        // Despesas
+        Categoria despOperacionais = criarPai("Despesas Operacionais", TipoCategoria.DESPESA);
+        criarFilha("Hospedagem em Nuvem", despOperacionais, TipoCategoria.DESPESA);
+        criarFilha("Licenças de Software", despOperacionais, TipoCategoria.DESPESA);
+        criarFilha("Salários e Encargos", despOperacionais, TipoCategoria.DESPESA);
+        criarFilha("Marketing", despOperacionais, TipoCategoria.DESPESA);
+
+        Categoria despAdministrativas = criarPai("Despesas Administrativas", TipoCategoria.DESPESA);
+        criarFilha("Aluguel e Condomínio", despAdministrativas, TipoCategoria.DESPESA);
+        criarFilha("Água", despAdministrativas, TipoCategoria.DESPESA);
+        criarFilha("Luz", despAdministrativas, TipoCategoria.DESPESA);
+        criarFilha("Internet", despAdministrativas, TipoCategoria.DESPESA);
+        criarFilha("Materiais de Escritório", despAdministrativas, TipoCategoria.DESPESA);
+
+        Categoria impostos = criarPai("Impostos e Taxas", TipoCategoria.DESPESA);
+        criarFilha("Imposto de Software", impostos, TipoCategoria.DESPESA);
+        criarFilha("Taxas Bancárias", impostos, TipoCategoria.DESPESA);
     }
 
-    private Categoria criarPai(String nome) {
-        return repository.save(Categoria.builder().nome(nome).preConfigurada(true).ativo(true).build());
+    private Categoria criarPai(String nome, TipoCategoria tipo) {
+        return repository.save(Categoria.builder().nome(nome).preConfigurada(true).ativo(true).tipo(tipo).build());
     }
 
-    private void criarFilha(String nome, Categoria pai) {
-        repository.save(Categoria.builder().nome(nome).pai(pai).preConfigurada(true).ativo(true).build());
+    private void criarFilha(String nome, Categoria pai, TipoCategoria tipo) {
+        repository.save(Categoria.builder().nome(nome).pai(pai).preConfigurada(true).ativo(true).tipo(tipo).build());
     }
 
     @Override
@@ -63,6 +76,7 @@ public class CategoriaServiceImp implements CategoriaService {
                 .nome(dto.getNome())
                 .ativo(dto.getAtivo() != null ? dto.getAtivo() : true)
                 .preConfigurada(false)
+                .tipo(dto.getTipo() != null ? dto.getTipo() : TipoCategoria.AMBOS)
                 .build();
                 
         if (dto.getPaiId() != null) {
@@ -82,15 +96,29 @@ public class CategoriaServiceImp implements CategoriaService {
     }
 
     @Override
-    public List<CategoriaResponseDTO> listarTodos() {
-        return repository.findAll().stream()
+    public List<CategoriaResponseDTO> listarTodos(TipoCategoria tipo) {
+        List<Categoria> categorias;
+        if (tipo != null) {
+            categorias = repository.findByTipoIn(Arrays.asList(tipo, TipoCategoria.AMBOS));
+        } else {
+            categorias = repository.findAll();
+        }
+        
+        return categorias.stream()
                 .map(CategoriaResponseDTO::fromEntity)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<CategoriaResponseDTO> listarRaizes() {
-        return repository.findByPaiIsNull().stream()
+    public List<CategoriaResponseDTO> listarRaizes(TipoCategoria tipo) {
+        List<Categoria> categorias;
+        if (tipo != null) {
+            categorias = repository.findByPaiIsNullAndTipoIn(Arrays.asList(tipo, TipoCategoria.AMBOS));
+        } else {
+            categorias = repository.findByPaiIsNull();
+        }
+
+        return categorias.stream()
                 .map(CategoriaResponseDTO::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -103,6 +131,7 @@ public class CategoriaServiceImp implements CategoriaService {
                 
         categoria.setNome(dto.getNome());
         if (dto.getAtivo() != null) categoria.setAtivo(dto.getAtivo());
+        if (dto.getTipo() != null) categoria.setTipo(dto.getTipo());
         
         if (dto.getPaiId() != null) {
             Categoria pai = repository.findById(dto.getPaiId())
@@ -124,10 +153,6 @@ public class CategoriaServiceImp implements CategoriaService {
         if (Boolean.TRUE.equals(categoria.getPreConfigurada())) {
             throw new RuntimeException("Categorias pré-configuradas não podem ser excluídas, apenas desativadas.");
         }
-        
-        // TODO: Validate if there are any Receitas linked
-        // long count = receitaRepository.countByCategoriaId(id);
-        // if (count > 0) throw new RuntimeException("A categoria possui receitas vinculadas e não pode ser excluída.");
         
         if (categoria.getFilhas() != null && !categoria.getFilhas().isEmpty()) {
             throw new RuntimeException("A categoria possui subcategorias e não pode ser excluída.");

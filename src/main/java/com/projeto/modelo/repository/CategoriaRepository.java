@@ -8,9 +8,12 @@ import java.util.List;
 import java.util.UUID;
 
 import java.util.Optional;
+import com.projeto.modelo.model.enums.TipoCategoria;
 
 @Repository
 public interface CategoriaRepository extends JpaRepository<Categoria, UUID> {
     List<Categoria> findByPaiIsNull();
+    List<Categoria> findByPaiIsNullAndTipoIn(List<TipoCategoria> tipos);
+    List<Categoria> findByTipoIn(List<TipoCategoria> tipos);
     Optional<Categoria> findByNomeIgnoreCase(String nome);
 }

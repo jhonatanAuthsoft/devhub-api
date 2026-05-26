@@ -52,6 +52,10 @@ public class Despesa extends BaseAuditableEntity {
     private ContaBancaria conta;
 
     @ManyToOne
+    @JoinColumn(name = "cartao_credito_id")
+    private CartaoCredito cartaoCredito;
+
+    @ManyToOne
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
 
@@ -97,6 +101,9 @@ public class Despesa extends BaseAuditableEntity {
     
     public ContaBancaria getConta() { return conta; }
     public void setConta(ContaBancaria conta) { this.conta = conta; }
+    
+    public CartaoCredito getCartaoCredito() { return cartaoCredito; }
+    public void setCartaoCredito(CartaoCredito cartaoCredito) { this.cartaoCredito = cartaoCredito; }
     
     public Categoria getCategoria() { return categoria; }
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }

@@ -15,6 +15,7 @@ public class DespesaRequestDTO {
     private UUID categoriaId;
     private UUID projetoId;
     private UUID contaBancariaId;
+    private UUID cartaoCreditoId;
     
     private TipoRecorrencia tipoRecorrencia;
     private Periodicidade periodicidade;

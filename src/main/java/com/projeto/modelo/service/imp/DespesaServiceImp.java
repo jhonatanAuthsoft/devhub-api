@@ -9,6 +9,7 @@ import com.projeto.modelo.model.entity.Categoria;
 import com.projeto.modelo.model.entity.ContaBancaria;
 import com.projeto.modelo.model.entity.Projeto;
 import com.projeto.modelo.model.entity.Despesa;
+import com.projeto.modelo.model.entity.CartaoCredito;
 import com.projeto.modelo.model.entity.Usuario;
 import com.projeto.modelo.model.enums.AcaoAuditLog;
 import com.projeto.modelo.model.enums.Periodicidade;
@@ -18,6 +19,7 @@ import com.projeto.modelo.repository.CategoriaRepository;
 import com.projeto.modelo.repository.ContaBancariaRepository;
 import com.projeto.modelo.repository.ProjetoRepository;
 import com.projeto.modelo.repository.DespesaRepository;
+import com.projeto.modelo.repository.CartaoCreditoRepository;
 import com.projeto.modelo.service.AuditLogService;
 import com.projeto.modelo.service.ContaBancariaService;
 import com.projeto.modelo.service.DespesaService;
@@ -42,6 +44,7 @@ public class DespesaServiceImp implements DespesaService {
     private final CategoriaRepository categoriaRepository;
     private final ProjetoRepository projetoRepository;
     private final ContaBancariaRepository contaBancariaRepository;
+    private final CartaoCreditoRepository cartaoCreditoRepository;
     private final AuditLogService auditLogService;
     private final ContaBancariaService contaBancariaService;
 
@@ -63,16 +66,23 @@ public class DespesaServiceImp implements DespesaService {
                     .orElseThrow(() -> new RuntimeException("Conta Bancária não encontrada"));
         }
 
+        CartaoCredito cartaoCredito = null;
+        if (dto.getCartaoCreditoId() != null) {
+            cartaoCredito = cartaoCreditoRepository.findById(dto.getCartaoCreditoId())
+                    .orElseThrow(() -> new RuntimeException("Cartão de Crédito não encontrado"));
+        }
+
         List<Despesa> geradas = new ArrayList<>();
 
         if (dto.getTipoRecorrencia() == TipoRecorrencia.UNICA) {
             Despesa despesa = Despesa.builder()
                     .descricao(dto.getDescricao())
                     .valorPrevisto(dto.getValorPrevisto())
-                    .dataVencimento(dto.getDataVencimento())
+                    .dataVencimento(cartaoCredito != null ? calcularVencimentoCartao(dto.getDataVencimento(), cartaoCredito) : dto.getDataVencimento())
                     .categoria(categoria)
                     .projeto(projeto)
                     .conta(contaBancaria)
+                    .cartaoCredito(cartaoCredito)
                     .status(StatusDespesa.PENDENTE)
                     .tipoRecorrencia(TipoRecorrencia.UNICA)
                     .build();
@@ -95,10 +105,11 @@ public class DespesaServiceImp implements DespesaService {
                     Despesa despesa = Despesa.builder()
                             .descricao(dto.getDescricao() + " (" + current + "/" + dto.getParcelasPersonalizadas().size() + ")")
                             .valorPrevisto(parc.getValor())
-                            .dataVencimento(parc.getDataVencimento())
+                            .dataVencimento(cartaoCredito != null ? calcularVencimentoCartao(parc.getDataVencimento(), cartaoCredito) : parc.getDataVencimento())
                             .categoria(categoria)
                             .projeto(projeto)
                             .conta(contaBancaria)
+                            .cartaoCredito(cartaoCredito)
                             .status(StatusDespesa.PENDENTE)
                             .tipoRecorrencia(TipoRecorrencia.PARCELADA)
                             .parcelaNumero(current)
@@ -123,7 +134,7 @@ public class DespesaServiceImp implements DespesaService {
                 BigDecimal resto = dto.getValorTotal().subtract(base.multiply(BigDecimal.valueOf(max)));
 
                 Despesa pai = null;
-                LocalDate vcto = dto.getDataVencimento();
+                LocalDate vcto = cartaoCredito != null ? calcularVencimentoCartao(dto.getDataVencimento(), cartaoCredito) : dto.getDataVencimento();
                 for (int i = 1; i <= max; i++) {
                     BigDecimal valor = (i == max) ? base.add(resto) : base;
                     Despesa despesa = Despesa.builder()
@@ -133,6 +144,7 @@ public class DespesaServiceImp implements DespesaService {
                             .categoria(categoria)
                             .projeto(projeto)
                             .conta(contaBancaria)
+                            .cartaoCredito(cartaoCredito)
                             .status(StatusDespesa.PENDENTE)
                             .tipoRecorrencia(TipoRecorrencia.PARCELADA)
                             .parcelaNumero(i)
@@ -156,7 +168,7 @@ public class DespesaServiceImp implements DespesaService {
         } else if (dto.getTipoRecorrencia() == TipoRecorrencia.RECORRENTE) {
              int limite = 12;
              Despesa pai = null;
-             LocalDate vcto = dto.getDataVencimento();
+             LocalDate vcto = cartaoCredito != null ? calcularVencimentoCartao(dto.getDataVencimento(), cartaoCredito) : dto.getDataVencimento();
              for (int i = 1; i <= limite; i++) {
                  Despesa despesa = Despesa.builder()
                          .descricao(dto.getDescricao())
@@ -165,6 +177,7 @@ public class DespesaServiceImp implements DespesaService {
                          .categoria(categoria)
                          .projeto(projeto)
                          .conta(contaBancaria)
+                         .cartaoCredito(cartaoCredito)
                          .status(StatusDespesa.PENDENTE)
                          .tipoRecorrencia(TipoRecorrencia.RECORRENTE)
                          .periodicidade(dto.getPeriodicidade())
@@ -202,6 +215,22 @@ public class DespesaServiceImp implements DespesaService {
         };
     }
 
+    private LocalDate calcularVencimentoCartao(LocalDate dataReferencia, CartaoCredito cartao) {
+        int diaFechamento = cartao.getDiaFechamento();
+        int diaVencimento = cartao.getDiaVencimento();
+        
+        LocalDate monthOfBilling = dataReferencia;
+        if (dataReferencia.getDayOfMonth() >= diaFechamento) {
+            monthOfBilling = monthOfBilling.plusMonths(1);
+        }
+        
+        LocalDate due = monthOfBilling.withDayOfMonth(Math.min(diaVencimento, monthOfBilling.lengthOfMonth()));
+        if (diaVencimento < diaFechamento) {
+            due = due.plusMonths(1);
+        }
+        return due;
+    }
+
     @Override
     public DespesaResponseDTO buscarPorId(UUID id) {
         return DespesaResponseDTO.fromEntity(repository.findById(id).orElseThrow(() -> new RuntimeException("Despesa não encontrada")));
@@ -231,13 +260,20 @@ public class DespesaServiceImp implements DespesaService {
                     .orElseThrow(() -> new RuntimeException("Conta Bancária não encontrada"));
         }
         
+        CartaoCredito cartaoCredito = null;
+        if (dto.getCartaoCreditoId() != null) {
+            cartaoCredito = cartaoCreditoRepository.findById(dto.getCartaoCreditoId())
+                    .orElseThrow(() -> new RuntimeException("Cartão de Crédito não encontrado"));
+        }
+        
         String dadosAntigos = "Desc=" + despesa.getDescricao() + ", Vlr=" + despesa.getValorPrevisto();
         
         despesa.setDescricao(dto.getDescricao());
         despesa.setValorPrevisto(dto.getValorPrevisto());
-        despesa.setDataVencimento(dto.getDataVencimento());
+        despesa.setDataVencimento(cartaoCredito != null ? calcularVencimentoCartao(dto.getDataVencimento(), cartaoCredito) : dto.getDataVencimento());
         despesa.setCategoria(categoria);
         despesa.setConta(contaBancaria);
+        despesa.setCartaoCredito(cartaoCredito);
         despesa.setAtualizadoPor(usuarioLogado);
         
         String dadosNovos = "Desc=" + dto.getDescricao() + ", Vlr=" + dto.getValorPrevisto();

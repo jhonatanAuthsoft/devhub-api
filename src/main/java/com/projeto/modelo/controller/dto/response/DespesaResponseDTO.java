@@ -25,6 +25,9 @@ public class DespesaResponseDTO {
     private UUID contaBancariaId;
     private String contaBancariaNome;
     
+    private UUID cartaoCreditoId;
+    private String cartaoCreditoDescricao;
+    
     private UUID categoriaId;
     private String categoriaNome;
     
@@ -48,6 +51,8 @@ public class DespesaResponseDTO {
                 .status(d.getStatus())
                 .contaBancariaId(d.getConta() != null ? d.getConta().getId() : null)
                 .contaBancariaNome(d.getConta() != null ? d.getConta().getNome() : null)
+                .cartaoCreditoId(d.getCartaoCredito() != null ? d.getCartaoCredito().getId() : null)
+                .cartaoCreditoDescricao(d.getCartaoCredito() != null ? d.getCartaoCredito().getDescricao() : null)
                 .categoriaId(d.getCategoria() != null ? d.getCategoria().getId() : null)
                 .categoriaNome(d.getCategoria() != null ? d.getCategoria().getNome() : null)
                 .projetoId(d.getProjeto() != null ? d.getProjeto().getId() : null)

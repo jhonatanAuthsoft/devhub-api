@@ -88,6 +88,10 @@ public class UsuarioServiceImp implements UsuarioService {
     public UsuarioResposeDTO cadastraUsuario(CadastraUsuarioDTO cadastraUsuarioDTO){
 
         Usuario usuario = new Usuario();
+
+        if (StringUtils.isNullOrEmpty(cadastraUsuarioDTO.senha())) {
+            throw new ExcecoesCustomizada("senha não pode ficar em branco", HttpStatus.BAD_REQUEST);
+        }
         String senhaCriptografada = this.passwordEncoder.encode(cadastraUsuarioDTO.senha());
 
         usuario.setEmail(cadastraUsuarioDTO.email());
@@ -180,6 +184,9 @@ public class UsuarioServiceImp implements UsuarioService {
         if (usuarioDTO.telefone() != null) usuario.setTelefone(usuarioDTO.telefone());
         if (!StringUtils.isNullOrEmpty(usuarioDTO.permissao())) {
             usuario.setPermissao(PermissaoStatus.valueOf(usuarioDTO.permissao()));
+        }
+        if (!StringUtils.isNullOrEmpty(usuarioDTO.status())) {
+            usuario.setStatus(UsuarioStatus.valueOf(usuarioDTO.status()));
         }
         if (usuarioDTO.chavePix() != null) usuario.setChavePix(usuarioDTO.chavePix());
         if (usuarioDTO.cep() != null) usuario.setCep(usuarioDTO.cep());

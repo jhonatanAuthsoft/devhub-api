@@ -34,6 +34,10 @@ public class ApontamentoServiceImp implements ApontamentoService {
         Usuario colaborador = usuarioRepository.findById(dto.colaboradorId())
                 .orElseThrow(() -> new RuntimeException("Colaborador não encontrado"));
 
+        if (colaborador.getStatus() == com.projeto.modelo.model.enums.UsuarioStatus.INATIVO) {
+            throw new RuntimeException("Usuário inativo não pode lançar horas");
+        }
+
 
         // VALIDATION LOGIC
         // Verificar se o colaborador usa salário fixo neste projeto

@@ -34,6 +34,11 @@ public class DespesaResponseDTO {
     private UUID projetoId;
     private String projetoNome;
     
+    private UUID colaboradorId;
+    private String colaboradorNome;
+    
+    private String mesReferencia;
+    
     private TipoRecorrencia tipoRecorrencia;
     private UUID recorrenciaPaiId;
     private Integer parcelaNumero;
@@ -57,6 +62,9 @@ public class DespesaResponseDTO {
                 .categoriaNome(d.getCategoria() != null ? d.getCategoria().getNome() : null)
                 .projetoId(d.getProjeto() != null ? d.getProjeto().getId() : null)
                 .projetoNome(d.getProjeto() != null ? d.getProjeto().getTitulo() : null)
+                .colaboradorId(d.getColaborador() != null ? d.getColaborador().getId() : null)
+                .colaboradorNome(d.getColaborador() != null ? d.getColaborador().getNome() : null)
+                .mesReferencia(d.getMesReferencia())
                 .tipoRecorrencia(d.getTipoRecorrencia())
                 .recorrenciaPaiId(d.getRecorrenciaPai() != null ? d.getRecorrenciaPai().getId() : null)
                 .parcelaNumero(d.getParcelaNumero())

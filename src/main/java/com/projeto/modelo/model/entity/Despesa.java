@@ -63,6 +63,13 @@ public class Despesa extends BaseAuditableEntity {
     @JoinColumn(name = "projeto_id")
     private Projeto projeto;
 
+    @ManyToOne
+    @JoinColumn(name = "colaborador_id")
+    private Usuario colaborador;
+
+    @Column(name = "mes_referencia", length = 7)
+    private String mesReferencia;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_recorrencia", nullable = false)
     private TipoRecorrencia tipoRecorrencia;
@@ -110,6 +117,12 @@ public class Despesa extends BaseAuditableEntity {
     
     public Projeto getProjeto() { return projeto; }
     public void setProjeto(Projeto projeto) { this.projeto = projeto; }
+    
+    public Usuario getColaborador() { return colaborador; }
+    public void setColaborador(Usuario colaborador) { this.colaborador = colaborador; }
+    
+    public String getMesReferencia() { return mesReferencia; }
+    public void setMesReferencia(String mesReferencia) { this.mesReferencia = mesReferencia; }
     
     public TipoRecorrencia getTipoRecorrencia() { return tipoRecorrencia; }
     public void setTipoRecorrencia(TipoRecorrencia tipoRecorrencia) { this.tipoRecorrencia = tipoRecorrencia; }

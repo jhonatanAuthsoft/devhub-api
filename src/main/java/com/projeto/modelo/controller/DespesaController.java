@@ -70,4 +70,10 @@ public class DespesaController {
                                                              @AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(service.estornar(id, dto, usuario));
     }
+
+    @GetMapping("/sugestoes-pagamento")
+    public ResponseEntity<List<com.projeto.modelo.controller.dto.response.SugestaoPagamentoDTO>> buscarSugestoesPagamento(
+            @RequestParam String mesAno) {
+        return ResponseEntity.ok(service.buscarSugestoesPagamento(mesAno));
+    }
 }

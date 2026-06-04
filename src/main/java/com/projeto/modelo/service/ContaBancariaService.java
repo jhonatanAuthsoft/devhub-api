@@ -13,4 +13,5 @@ public interface ContaBancariaService {
     ContaBancariaResponseDTO atualizar(UUID id, ContaBancariaRequestDTO dto);
     void deletar(UUID id);
     void atualizarSaldo(UUID contaId, BigDecimal valorAdicional);
+    ContaBancariaResponseDTO ajustarSaldo(UUID contaId, BigDecimal novoSaldo, String motivo);
 }

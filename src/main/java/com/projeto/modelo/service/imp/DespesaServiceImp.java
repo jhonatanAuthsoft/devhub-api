@@ -20,9 +20,17 @@ import com.projeto.modelo.repository.ContaBancariaRepository;
 import com.projeto.modelo.repository.ProjetoRepository;
 import com.projeto.modelo.repository.DespesaRepository;
 import com.projeto.modelo.repository.CartaoCreditoRepository;
+import com.projeto.modelo.repository.ApontamentoRepository;
+import com.projeto.modelo.repository.UsuarioRepository;
 import com.projeto.modelo.service.AuditLogService;
 import com.projeto.modelo.service.ContaBancariaService;
 import com.projeto.modelo.service.DespesaService;
+import com.projeto.modelo.controller.dto.response.SugestaoPagamentoDTO;
+import com.projeto.modelo.model.entity.Apontamento;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+import java.util.HashMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -45,6 +53,8 @@ public class DespesaServiceImp implements DespesaService {
     private final ProjetoRepository projetoRepository;
     private final ContaBancariaRepository contaBancariaRepository;
     private final CartaoCreditoRepository cartaoCreditoRepository;
+    private final ApontamentoRepository apontamentoRepository;
+    private final UsuarioRepository usuarioRepository;
     private final AuditLogService auditLogService;
     private final ContaBancariaService contaBancariaService;
 
@@ -58,6 +68,12 @@ public class DespesaServiceImp implements DespesaService {
         if (dto.getProjetoId() != null) {
             projeto = projetoRepository.findById(dto.getProjetoId())
                     .orElseThrow(() -> new RuntimeException("Projeto não encontrado"));
+        }
+        
+        Usuario colaborador = null;
+        if (dto.getColaboradorId() != null) {
+            colaborador = usuarioRepository.findById(dto.getColaboradorId())
+                    .orElseThrow(() -> new RuntimeException("Colaborador não encontrado"));
         }
 
         ContaBancaria contaBancaria = null;
@@ -83,6 +99,8 @@ public class DespesaServiceImp implements DespesaService {
                     .projeto(projeto)
                     .conta(contaBancaria)
                     .cartaoCredito(cartaoCredito)
+                    .colaborador(colaborador)
+                    .mesReferencia(dto.getMesReferencia())
                     .status(StatusDespesa.PENDENTE)
                     .tipoRecorrencia(TipoRecorrencia.UNICA)
                     .build();
@@ -110,6 +128,8 @@ public class DespesaServiceImp implements DespesaService {
                             .projeto(projeto)
                             .conta(contaBancaria)
                             .cartaoCredito(cartaoCredito)
+                            .colaborador(colaborador)
+                            .mesReferencia(dto.getMesReferencia())
                             .status(StatusDespesa.PENDENTE)
                             .tipoRecorrencia(TipoRecorrencia.PARCELADA)
                             .parcelaNumero(current)
@@ -145,6 +165,8 @@ public class DespesaServiceImp implements DespesaService {
                             .projeto(projeto)
                             .conta(contaBancaria)
                             .cartaoCredito(cartaoCredito)
+                            .colaborador(colaborador)
+                            .mesReferencia(dto.getMesReferencia())
                             .status(StatusDespesa.PENDENTE)
                             .tipoRecorrencia(TipoRecorrencia.PARCELADA)
                             .parcelaNumero(i)
@@ -178,6 +200,8 @@ public class DespesaServiceImp implements DespesaService {
                          .projeto(projeto)
                          .conta(contaBancaria)
                          .cartaoCredito(cartaoCredito)
+                         .colaborador(colaborador)
+                         .mesReferencia(dto.getMesReferencia())
                          .status(StatusDespesa.PENDENTE)
                          .tipoRecorrencia(TipoRecorrencia.RECORRENTE)
                          .periodicidade(dto.getPeriodicidade())
@@ -363,7 +387,85 @@ public class DespesaServiceImp implements DespesaService {
         for (Despesa d : pendentes) {
             d.setStatus(StatusDespesa.ATRASADO);
             repository.save(d);
-            auditLogService.registrarLog("Despesa", d.getId(), AcaoAuditLog.EDITOU, null, "Status: PENDENTE", "Status: ATRASADO (Job automático do sistema)", null);
+auditLogService.registrarLog("Despesa", d.getId(), AcaoAuditLog.EDITOU, null, "Status: PENDENTE", "Status: ATRASADO (Job automático do sistema)", null);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SugestaoPagamentoDTO> buscarSugestoesPagamento(String mesAno) {
+        // mesAno vem no formato yyyy-MM. Queremos as horas do mês anterior.
+        YearMonth currentMonth = YearMonth.parse(mesAno, DateTimeFormatter.ofPattern("yyyy-MM"));
+        YearMonth prevMonth = currentMonth.minusMonths(1);
+        
+        LocalDate dataInicio = prevMonth.atDay(1);
+        LocalDate dataFim = prevMonth.atEndOfMonth();
+        
+        List<Apontamento> apontamentos = apontamentoRepository.findByDataApontamentoBetween(dataInicio, dataFim);
+        
+        // Agrupar o VALOR a pagar por colaborador
+        Map<Usuario, BigDecimal> valorPorColaborador = new HashMap<>();
+        
+        // 1. Adicionar o Salário Fixo para todos os colaboradores ativos que possuem valor fixo
+        List<Usuario> todosUsuarios = usuarioRepository.findAll();
+        for (Usuario u : todosUsuarios) {
+            if (u.getStatus() == com.projeto.modelo.model.enums.UsuarioStatus.ATIVO 
+                && u.getValorFixo() != null 
+                && u.getValorFixo().compareTo(BigDecimal.ZERO) > 0) {
+                valorPorColaborador.put(u, u.getValorFixo());
+            }
+        }
+        
+        // 2. Somar o valor das horas apontadas apenas para projetos onde NÃO usa salário fixo
+        for (Apontamento ap : apontamentos) {
+            Usuario colab = ap.getColaborador();
+            if (colab == null || ap.getProjeto() == null || colab.getStatus() == com.projeto.modelo.model.enums.UsuarioStatus.INATIVO) continue;
+            
+            Boolean usaSalarioFixo = apontamentoRepository.findUsaSalarioFixoByProjetoAndColaborador(ap.getProjeto().getId(), colab.getId());
+            
+            if (Boolean.TRUE.equals(usaSalarioFixo)) {
+                // Horas estão cobertas pelo salário fixo, não gera conta a pagar extra (apenas entra no custo do projeto)
+                continue;
+            }
+            
+            // Se não recebe salário fixo para esse projeto, soma o valor das horas
+            if (colab.getValorHora() != null && colab.getValorHora().compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal valorHoras = ap.getHoras().multiply(colab.getValorHora());
+                valorPorColaborador.put(colab, valorPorColaborador.getOrDefault(colab, BigDecimal.ZERO).add(valorHoras));
+            }
+        }
+        
+        String prevMonthStr = prevMonth.toString(); // "yyyy-MM"
+        
+        List<SugestaoPagamentoDTO> sugestoes = new ArrayList<>();
+        
+        for (Map.Entry<Usuario, BigDecimal> entry : valorPorColaborador.entrySet()) {
+            Usuario colab = entry.getKey();
+            BigDecimal valorTotal = entry.getValue();
+            
+            // Verifica se ja existe despesa
+            boolean jaLancado = repository.findAll().stream()
+                .anyMatch(d -> d.getExcluidoEm() == null 
+                            && d.getColaborador() != null 
+                            && d.getColaborador().getId().equals(colab.getId())
+                            && prevMonthStr.equals(d.getMesReferencia()));
+                            
+            if (!jaLancado) {
+                BigDecimal valorSugerido = valorTotal;
+                
+                SugestaoPagamentoDTO sugestao = new SugestaoPagamentoDTO();
+                sugestao.setId(UUID.randomUUID()); // ID fake só pro frontend renderizar key
+                sugestao.setDescricao("Pagamento " + colab.getNome() + " ref. " + prevMonthStr);
+                sugestao.setValorPrevisto(valorSugerido);
+                sugestao.setDataVencimento(LocalDate.now().toString()); // Vencimento pro dia atual (sugestão)
+                sugestao.setStatus("SUGESTAO");
+                sugestao.setColaboradorId(colab.getId());
+                sugestao.setMesReferencia(prevMonthStr);
+                
+                sugestoes.add(sugestao);
+            }
+        }
+        
+        return sugestoes;
     }
 }

@@ -19,4 +19,5 @@ public interface DespesaService {
     DespesaResponseDTO pagar(UUID id, PagarDespesaDTO dto, Usuario usuarioLogado);
     List<DespesaResponseDTO> estornar(UUID id, EstornarDespesaDTO dto, Usuario usuarioLogado);
     void atualizarStatusAtraso();
+    List<com.projeto.modelo.controller.dto.response.SugestaoPagamentoDTO> buscarSugestoesPagamento(String mesAno);
 }

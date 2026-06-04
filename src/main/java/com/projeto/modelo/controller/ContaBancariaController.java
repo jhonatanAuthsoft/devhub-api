@@ -3,10 +3,12 @@ package com.projeto.modelo.controller;
 import com.projeto.modelo.controller.dto.request.ContaBancariaRequestDTO;
 import com.projeto.modelo.controller.dto.response.ContaBancariaResponseDTO;
 import com.projeto.modelo.service.ContaBancariaService;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,4 +44,18 @@ public class ContaBancariaController {
         service.deletar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/ajuste-saldo")
+    public ResponseEntity<ContaBancariaResponseDTO> ajustarSaldo(
+            @PathVariable UUID id,
+            @RequestBody AjusteSaldoRequest req) {
+        return ResponseEntity.ok(service.ajustarSaldo(id, req.getNovoSaldo(), req.getMotivo()));
+    }
+
+    @Data
+    public static class AjusteSaldoRequest {
+        private BigDecimal novoSaldo;
+        private String motivo;
+    }
 }
+

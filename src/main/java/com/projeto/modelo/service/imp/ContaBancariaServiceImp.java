@@ -54,6 +54,11 @@ public class ContaBancariaServiceImp implements ContaBancariaService {
         conta.setNome(dto.getNome());
         if (dto.getAtivo() != null) conta.setAtivo(dto.getAtivo());
         if (dto.getEmiteBoleto() != null) conta.setEmiteBoleto(dto.getEmiteBoleto());
+        
+        if (dto.getSaldoInicial() != null && dto.getSaldoInicial().compareTo(conta.getSaldoAtual()) != 0) {
+            conta.setSaldoAtual(dto.getSaldoInicial());
+        }
+        
         return ContaBancariaResponseDTO.fromEntity(repository.save(conta));
     }
 
@@ -73,4 +78,14 @@ public class ContaBancariaServiceImp implements ContaBancariaService {
         conta.setSaldoAtual(conta.getSaldoAtual().add(valorAdicional));
         repository.save(conta);
     }
+
+    @Override
+    @Transactional
+    public ContaBancariaResponseDTO ajustarSaldo(UUID contaId, BigDecimal novoSaldo, String motivo) {
+        ContaBancaria conta = repository.findById(contaId)
+                .orElseThrow(() -> new RuntimeException("Conta bancária não encontrada"));
+        conta.setSaldoAtual(novoSaldo);
+        return ContaBancariaResponseDTO.fromEntity(repository.save(conta));
+    }
 }
+

@@ -403,8 +403,17 @@ auditLogService.registrarLog("Despesa", d.getId(), AcaoAuditLog.EDITOU, null, "S
         
         List<Apontamento> apontamentos = apontamentoRepository.findByDataApontamentoBetween(dataInicio, dataFim);
         
+        class ValoresColaborador {
+            BigDecimal salarioFixo = BigDecimal.ZERO;
+            BigDecimal valorHoras = BigDecimal.ZERO;
+            BigDecimal quantidadeHoras = BigDecimal.ZERO;
+            BigDecimal getValorTotal() {
+                return salarioFixo.add(valorHoras);
+            }
+        }
+        
         // Agrupar o VALOR a pagar por colaborador
-        Map<Usuario, BigDecimal> valorPorColaborador = new HashMap<>();
+        Map<Usuario, ValoresColaborador> valorPorColaborador = new HashMap<>();
         
         // 1. Adicionar o Salário Fixo para todos os colaboradores ativos que possuem valor fixo
         List<Usuario> todosUsuarios = usuarioRepository.findAll();
@@ -412,7 +421,9 @@ auditLogService.registrarLog("Despesa", d.getId(), AcaoAuditLog.EDITOU, null, "S
             if (u.getStatus() == com.projeto.modelo.model.enums.UsuarioStatus.ATIVO 
                 && u.getValorFixo() != null 
                 && u.getValorFixo().compareTo(BigDecimal.ZERO) > 0) {
-                valorPorColaborador.put(u, u.getValorFixo());
+                ValoresColaborador vc = new ValoresColaborador();
+                vc.salarioFixo = u.getValorFixo();
+                valorPorColaborador.put(u, vc);
             }
         }
         
@@ -431,7 +442,10 @@ auditLogService.registrarLog("Despesa", d.getId(), AcaoAuditLog.EDITOU, null, "S
             // Se não recebe salário fixo para esse projeto, soma o valor das horas
             if (colab.getValorHora() != null && colab.getValorHora().compareTo(BigDecimal.ZERO) > 0) {
                 BigDecimal valorHoras = ap.getHoras().multiply(colab.getValorHora());
-                valorPorColaborador.put(colab, valorPorColaborador.getOrDefault(colab, BigDecimal.ZERO).add(valorHoras));
+                ValoresColaborador vc = valorPorColaborador.getOrDefault(colab, new ValoresColaborador());
+                vc.valorHoras = vc.valorHoras.add(valorHoras);
+                vc.quantidadeHoras = vc.quantidadeHoras.add(ap.getHoras());
+                valorPorColaborador.put(colab, vc);
             }
         }
         
@@ -439,9 +453,9 @@ auditLogService.registrarLog("Despesa", d.getId(), AcaoAuditLog.EDITOU, null, "S
         
         List<SugestaoPagamentoDTO> sugestoes = new ArrayList<>();
         
-        for (Map.Entry<Usuario, BigDecimal> entry : valorPorColaborador.entrySet()) {
+        for (Map.Entry<Usuario, ValoresColaborador> entry : valorPorColaborador.entrySet()) {
             Usuario colab = entry.getKey();
-            BigDecimal valorTotal = entry.getValue();
+            ValoresColaborador vc = entry.getValue();
             
             // Verifica se ja existe despesa
             boolean jaLancado = repository.findAll().stream()
@@ -451,16 +465,19 @@ auditLogService.registrarLog("Despesa", d.getId(), AcaoAuditLog.EDITOU, null, "S
                             && prevMonthStr.equals(d.getMesReferencia()));
                             
             if (!jaLancado) {
-                BigDecimal valorSugerido = valorTotal;
+                BigDecimal valorSugerido = vc.getValorTotal();
                 
                 SugestaoPagamentoDTO sugestao = new SugestaoPagamentoDTO();
                 sugestao.setId(UUID.randomUUID()); // ID fake só pro frontend renderizar key
-                sugestao.setDescricao("Pagamento " + colab.getNome() + " ref. " + prevMonthStr);
+                sugestao.setDescricao(colab.getNome() + " ref. " + prevMonthStr);
                 sugestao.setValorPrevisto(valorSugerido);
                 sugestao.setDataVencimento(LocalDate.now().toString()); // Vencimento pro dia atual (sugestão)
                 sugestao.setStatus("SUGESTAO");
                 sugestao.setColaboradorId(colab.getId());
                 sugestao.setMesReferencia(prevMonthStr);
+                sugestao.setValorSalarioFixo(vc.salarioFixo);
+                sugestao.setValorHoras(vc.valorHoras);
+                sugestao.setQuantidadeHoras(vc.quantidadeHoras);
                 
                 sugestoes.add(sugestao);
             }

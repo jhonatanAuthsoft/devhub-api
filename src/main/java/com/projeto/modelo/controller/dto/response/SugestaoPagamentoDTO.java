@@ -23,4 +23,8 @@ public class SugestaoPagamentoDTO {
     private String colaboradorNome;
     
     private String mesReferencia;
+    
+    private BigDecimal valorSalarioFixo;
+    private BigDecimal valorHoras;
+    private BigDecimal quantidadeHoras;
 }

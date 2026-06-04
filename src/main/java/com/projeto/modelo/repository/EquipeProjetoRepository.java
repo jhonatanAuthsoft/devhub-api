@@ -11,6 +11,7 @@ import java.util.UUID;
 
 public interface EquipeProjetoRepository extends JpaRepository<EquipeProjeto, UUID> {
     List<EquipeProjeto> findByProjetoId(UUID projetoId);
+    List<EquipeProjeto> findByColaboradorId(UUID colaboradorId);
 
     @Query("SELECT ep FROM EquipeProjeto ep " +
            "WHERE (ep.usaSalarioFixo IS NULL OR ep.usaSalarioFixo = false) " +

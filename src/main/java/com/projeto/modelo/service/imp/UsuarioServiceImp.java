@@ -12,6 +12,7 @@ import com.projeto.modelo.controller.dto.response.UsuarioResposeDTO;
 import com.projeto.modelo.mapper.UsuarioMapper;
 import com.projeto.modelo.model.entity.Usuario;
 import com.projeto.modelo.model.enums.PermissaoStatus;
+import com.projeto.modelo.model.enums.TipoContratacao;
 import com.projeto.modelo.model.enums.UsuarioStatus;
 import com.projeto.modelo.repository.EmailService;
 import com.projeto.modelo.repository.UsuarioRepository;
@@ -105,6 +106,13 @@ public class UsuarioServiceImp implements UsuarioService {
         } else {
             usuario.setPermissao(PermissaoStatus.COLABORADOR);
         }
+
+        if (!StringUtils.isNullOrEmpty(cadastraUsuarioDTO.tipoContratacao())) {
+            usuario.setTipoContratacao(TipoContratacao.valueOf(cadastraUsuarioDTO.tipoContratacao()));
+        } else {
+            usuario.setTipoContratacao(TipoContratacao.FREELANCER);
+        }
+
         usuario.setCargo(cadastraUsuarioDTO.cargo());
         usuario.setTelefone(cadastraUsuarioDTO.telefone());
         usuario.setChavePix(cadastraUsuarioDTO.chavePix());
@@ -185,6 +193,14 @@ public class UsuarioServiceImp implements UsuarioService {
         if (!StringUtils.isNullOrEmpty(usuarioDTO.permissao())) {
             usuario.setPermissao(PermissaoStatus.valueOf(usuarioDTO.permissao()));
         }
+
+        if (!StringUtils.isNullOrEmpty(usuarioDTO.tipoContratacao())) {
+            boolean isAdmin = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            if (isAdmin) {
+                usuario.setTipoContratacao(TipoContratacao.valueOf(usuarioDTO.tipoContratacao()));
+            }
+        }
+
         if (!StringUtils.isNullOrEmpty(usuarioDTO.status())) {
             usuario.setStatus(UsuarioStatus.valueOf(usuarioDTO.status()));
         }

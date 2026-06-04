@@ -12,6 +12,7 @@ public record UsuarioResposeDTO(
     String telefone,
     String status,
     String permissao,
+    String tipoContratacao,
     String chavePix,
     String cep,
     String logradouro,
@@ -41,6 +42,7 @@ public record UsuarioResposeDTO(
         private String telefone;
         private String status;
         private String permissao;
+        private String tipoContratacao;
         private String chavePix;
         private String cep;
         private String logradouro;
@@ -64,6 +66,7 @@ public record UsuarioResposeDTO(
         public UsuarioResposeDTOBuilder telefone(String telefone) { this.telefone = telefone; return this; }
         public UsuarioResposeDTOBuilder status(String status) { this.status = status; return this; }
         public UsuarioResposeDTOBuilder permissao(String permissao) { this.permissao = permissao; return this; }
+        public UsuarioResposeDTOBuilder tipoContratacao(String tipoContratacao) { this.tipoContratacao = tipoContratacao; return this; }
         public UsuarioResposeDTOBuilder chavePix(String chavePix) { this.chavePix = chavePix; return this; }
         public UsuarioResposeDTOBuilder cep(String cep) { this.cep = cep; return this; }
         public UsuarioResposeDTOBuilder logradouro(String logradouro) { this.logradouro = logradouro; return this; }
@@ -82,7 +85,7 @@ public record UsuarioResposeDTO(
 
         public UsuarioResposeDTO build() {
             return new UsuarioResposeDTO(
-                id, email, nome, cargo, telefone, status, permissao, chavePix, cep, logradouro, bairro,
+                id, email, nome, cargo, telefone, status, permissao, tipoContratacao, chavePix, cep, logradouro, bairro,
                 cidade, estado, numero, complemento, pais, valorFixo, valorHora, razaoSocial, cnpj, cpf, emailAuthsoft
             );
         }

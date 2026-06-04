@@ -22,6 +22,8 @@ import com.projeto.modelo.repository.DespesaRepository;
 import com.projeto.modelo.repository.CartaoCreditoRepository;
 import com.projeto.modelo.repository.ApontamentoRepository;
 import com.projeto.modelo.repository.UsuarioRepository;
+import com.projeto.modelo.repository.EquipeProjetoRepository;
+import com.projeto.modelo.model.entity.EquipeProjeto;
 import com.projeto.modelo.service.AuditLogService;
 import com.projeto.modelo.service.ContaBancariaService;
 import com.projeto.modelo.service.DespesaService;
@@ -55,6 +57,7 @@ public class DespesaServiceImp implements DespesaService {
     private final CartaoCreditoRepository cartaoCreditoRepository;
     private final ApontamentoRepository apontamentoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final EquipeProjetoRepository equipeProjetoRepository;
     private final AuditLogService auditLogService;
     private final ContaBancariaService contaBancariaService;
 
@@ -421,9 +424,37 @@ auditLogService.registrarLog("Despesa", d.getId(), AcaoAuditLog.EDITOU, null, "S
             if (u.getStatus() == com.projeto.modelo.model.enums.UsuarioStatus.ATIVO 
                 && u.getValorFixo() != null 
                 && u.getValorFixo().compareTo(BigDecimal.ZERO) > 0) {
-                ValoresColaborador vc = new ValoresColaborador();
-                vc.salarioFixo = u.getValorFixo();
-                valorPorColaborador.put(u, vc);
+                
+                boolean hasProjetoSalarioFixo = equipeProjetoRepository.findByColaboradorId(u.getId()).stream()
+                            .anyMatch(ep -> Boolean.TRUE.equals(ep.getUsaSalarioFixo()));
+                            
+                if (hasProjetoSalarioFixo) {
+                    ValoresColaborador vc = new ValoresColaborador();
+                    vc.salarioFixo = u.getValorFixo();
+                    valorPorColaborador.put(u, vc);
+                }
+            }
+        }
+        
+        // 2. Adicionar 160 horas default para usuários tipo FIXO que não recebem salário fixo
+        // em meses atuais ou futuros, se não tiverem apontado horas ainda.
+        YearMonth now = YearMonth.now();
+        boolean isCurrentOrFuture = !prevMonth.isBefore(now);
+
+        for (Usuario u : todosUsuarios) {
+            if (u.getStatus() == com.projeto.modelo.model.enums.UsuarioStatus.ATIVO 
+                && u.getTipoContratacao() == com.projeto.modelo.model.enums.TipoContratacao.FIXO
+                && (u.getValorFixo() == null || u.getValorFixo().compareTo(BigDecimal.ZERO) == 0)
+                && u.getValorHora() != null 
+                && u.getValorHora().compareTo(BigDecimal.ZERO) > 0
+                && isCurrentOrFuture) {
+                
+                // Se for mes atual/futuro e o cara for FIXO e não tiver salario fixo, injetamos as 160h.
+                // Mas pera, se ele lançou algumas horas já, não vamos sobrepor, a menos que ele tenha 0 horas.
+                // Inicializamos com 0, se chegar no fim e ele não tiver apontado, vai continuar 160.
+                // Mas aqui podemos inicializar já com 160. Se ele tiver apontamentos, no loop abaixo a gente soma as apontadas 
+                // e teria que tirar essas 160. A regra diz: "caso não tenha lançado horas ainda... considere 160".
+                // Ou seja, se o apontamento total for zero, considerar 160. Vamos fazer isso DEPOIS de somar os apontamentos!
             }
         }
         
@@ -446,6 +477,30 @@ auditLogService.registrarLog("Despesa", d.getId(), AcaoAuditLog.EDITOU, null, "S
                 vc.valorHoras = vc.valorHoras.add(valorHoras);
                 vc.quantidadeHoras = vc.quantidadeHoras.add(ap.getHoras());
                 valorPorColaborador.put(colab, vc);
+            }
+        }
+
+        // 3. Aplicar regra de 160h para usuários tipo FIXO em meses atuais ou futuros que não apontaram horas
+        if (isCurrentOrFuture) {
+            for (Usuario u : todosUsuarios) {
+                if (u.getStatus() == com.projeto.modelo.model.enums.UsuarioStatus.ATIVO
+                    && u.getTipoContratacao() == com.projeto.modelo.model.enums.TipoContratacao.FIXO
+                    && u.getValorHora() != null
+                    && u.getValorHora().compareTo(BigDecimal.ZERO) > 0) {
+                    
+                    // Verifica se o usuário possui algum projeto configurado com "usaSalarioFixo" = true
+                    boolean hasProjetoSalarioFixo = equipeProjetoRepository.findByColaboradorId(u.getId()).stream()
+                            .anyMatch(ep -> Boolean.TRUE.equals(ep.getUsaSalarioFixo()));
+                    
+                    if (!hasProjetoSalarioFixo) {
+                        ValoresColaborador vc = valorPorColaborador.getOrDefault(u, new ValoresColaborador());
+                        if (vc.quantidadeHoras.compareTo(BigDecimal.ZERO) == 0) {
+                            vc.quantidadeHoras = new BigDecimal("160");
+                            vc.valorHoras = new BigDecimal("160").multiply(u.getValorHora());
+                            valorPorColaborador.put(u, vc);
+                        }
+                    }
+                }
             }
         }
         

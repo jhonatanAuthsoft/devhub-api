@@ -53,9 +53,10 @@ public class UsuarioController {
     @GetMapping
     public ResponseEntity<Page<UsuarioResposeDTO>> listarUsuarios(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("nome").ascending());
-        Page<UsuarioResposeDTO> usuarios = this.usuarioService.listarUsuariosPaginado(pageable);
+        Page<UsuarioResposeDTO> usuarios = this.usuarioService.listarUsuariosPaginado(search, pageable);
         return ResponseEntity.ok(usuarios);
     }
 

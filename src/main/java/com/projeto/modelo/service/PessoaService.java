@@ -84,7 +84,12 @@ public class PessoaService {
     }
 
     @Transactional(readOnly = true)
-    public List<PessoaResponseDTO> listarTodas() {
+    public List<PessoaResponseDTO> listarTodas(String search) {
+        if (search != null && !search.trim().isEmpty()) {
+            return pessoaRepository.buscarPorTermo(search).stream()
+                    .map(this::toResponseDTO)
+                    .collect(Collectors.toList());
+        }
         return pessoaRepository.findAll().stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());

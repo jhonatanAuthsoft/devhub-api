@@ -31,9 +31,10 @@ public class ProjetoController {
 
     @GetMapping
     public ResponseEntity<Page<ProjetoResponseDTO>> listarProjetos(
+            @RequestParam(required = false) String search,
             @PageableDefault(sort = "titulo", direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        return ResponseEntity.ok(projetoService.listarProjetos(pageable));
+        return ResponseEntity.ok(projetoService.listarProjetos(search, pageable));
     }
 
     @GetMapping("/{id}")

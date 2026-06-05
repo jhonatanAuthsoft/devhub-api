@@ -54,14 +54,15 @@ public class PessoaController {
 
     @GetMapping
     public ResponseEntity<List<PessoaResponseDTO>> listarTodas(
-            @RequestParam(required = false) TipoPessoaVinculo tipo) {
+            @RequestParam(required = false) TipoPessoaVinculo tipo,
+            @RequestParam(required = false) String search) {
         
         List<PessoaResponseDTO> response;
         
         if (tipo != null) {
             response = pessoaService.listarPorTipo(tipo);
         } else {
-            response = pessoaService.listarTodas();
+            response = pessoaService.listarTodas(search);
         }
         
         return ResponseEntity.ok(response);

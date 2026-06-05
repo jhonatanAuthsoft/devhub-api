@@ -29,5 +29,5 @@ public interface UsuarioService {
     void esqueceuSenha(UsuarioEsqueceuSenhaRequestDTO usuarioEsqueceuSenhaRequestDTO);
 
     @Transactional(readOnly = true)
-    Page<UsuarioResposeDTO> listarUsuariosPaginado(Pageable pageable);
+    Page<UsuarioResposeDTO> listarUsuariosPaginado(String search, Pageable pageable);
 }

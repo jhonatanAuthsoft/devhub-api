@@ -303,7 +303,10 @@ public class ProjetoServiceImp implements ProjetoService {
     }
 
     @Override
-    public Page<ProjetoResponseDTO> listarProjetos(Pageable pageable) {
+    public Page<ProjetoResponseDTO> listarProjetos(String search, Pageable pageable) {
+        if (search != null && !search.trim().isEmpty()) {
+            return projetoRepository.buscarPorTermo(search, pageable).map(this::mapToDTO);
+        }
         return projetoRepository.findAll(pageable).map(this::mapToDTO);
     }
 

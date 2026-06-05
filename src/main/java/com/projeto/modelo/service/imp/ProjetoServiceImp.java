@@ -7,7 +7,8 @@ import com.projeto.modelo.model.entity.*;
 import com.projeto.modelo.model.enums.*;
 import com.projeto.modelo.repository.*;
 import com.projeto.modelo.service.ProjetoService;
-import jakarta.transaction.Transactional;
+import com.projeto.modelo.service.ReceitaService;
+import jakarta.transaction.Transactional; 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,8 @@ public class ProjetoServiceImp implements ProjetoService {
     private final PessoaRepository pessoaRepository;
     private final UsuarioRepository usuarioRepository;
     private final MetaRepository metaRepository;
+    private final ReceitaService receitaService;
+    private final CategoriaRepository categoriaRepository;
 
     @Override
     @Transactional
@@ -46,11 +49,41 @@ public class ProjetoServiceImp implements ProjetoService {
                     .orElseThrow(() -> new ExcecoesCustomizada("Vendedor não encontrado", HttpStatus.NOT_FOUND));
         }
 
-        // 3. Validar Projeto Origem (Upsell)
+        // 3. Validar Projeto Origem (Upsell ou SMP)
         Projeto projetoOrigem = null;
         if (dto.projetoOrigemId() != null) {
             projetoOrigem = projetoRepository.findById(dto.projetoOrigemId())
                     .orElseThrow(() -> new ExcecoesCustomizada("Projeto de origem não encontrado", HttpStatus.NOT_FOUND));
+        }
+
+        if (dto.tipoProjeto() == TipoProjeto.SMP) {
+            // Removida a validação de admin para permitir que gerentes/vendedores cadastrem SMP
+            if (projetoOrigem == null) {
+                throw new ExcecoesCustomizada("SMP deve ser vinculada a um Projeto de origem", HttpStatus.BAD_REQUEST);
+            }
+            
+            if (dto.horasEstimadas() != null) {
+                projetoOrigem.setHorasEstimadas(
+                    (projetoOrigem.getHorasEstimadas() != null ? projetoOrigem.getHorasEstimadas() : BigDecimal.ZERO).add(dto.horasEstimadas())
+                );
+            }
+            if (dto.valorTotal() != null) {
+                projetoOrigem.setValorTotal(
+                    (projetoOrigem.getValorTotal() != null ? projetoOrigem.getValorTotal() : BigDecimal.ZERO).add(dto.valorTotal())
+                );
+                BigDecimal iPct = projetoOrigem.getImpostoPercentual() != null ? projetoOrigem.getImpostoPercentual() : new BigDecimal("15.00");
+                BigDecimal lPct = projetoOrigem.getLucroPercentual() != null ? projetoOrigem.getLucroPercentual() : BigDecimal.ZERO;
+                BigDecimal vImp = projetoOrigem.getValorTotal().multiply(iPct).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+                BigDecimal vLuc = projetoOrigem.getValorTotal().multiply(lPct).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+                projetoOrigem.setValorDesenvolvimento(projetoOrigem.getValorTotal().subtract(vImp).subtract(vLuc));
+            }
+            if (dto.dataFimProjeto() != null) {
+                if (projetoOrigem.getDataFimProjeto() == null || dto.dataFimProjeto().isAfter(projetoOrigem.getDataFimProjeto())) {
+                    projetoOrigem.setDataFimProjeto(dto.dataFimProjeto());
+                    projetoOrigem.setDataFimDesenv(dto.dataFimProjeto());
+                }
+            }
+            projetoRepository.save(projetoOrigem);
         }
 
         // 4. Buscar Meta de Lucro do Ano
@@ -216,11 +249,64 @@ public class ProjetoServiceImp implements ProjetoService {
         // Salvar tudo (Cascade ALL cuida dos filhos)
         Projeto projetoSalvo = projetoRepository.save(projeto);
 
+        if (dto.contaBancariaId() != null) {
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            Usuario usuarioLogado = (auth != null && auth.getPrincipal() instanceof Usuario) ? (Usuario) auth.getPrincipal() : null;
+
+            String nomeCategoria = "Projeto " + projetoSalvo.getTipoProjeto().name().replace("_", " ");
+            Categoria categoria = categoriaRepository.findByNomeIgnoreCase(nomeCategoria).orElseGet(() -> {
+                return categoriaRepository.save(Categoria.builder()
+                        .nome(nomeCategoria)
+                        .preConfigurada(true)
+                        .ativo(true)
+                        .build());
+            });
+
+            ReceitaRequestDTO receitaDto = new ReceitaRequestDTO();
+            receitaDto.setDescricao(projetoSalvo.getTitulo());
+            receitaDto.setDataVencimento(projetoSalvo.getDataInicio() != null ? projetoSalvo.getDataInicio() : LocalDate.now());
+            receitaDto.setCategoriaId(categoria.getId());
+            receitaDto.setProjetoId(projetoSalvo.getId());
+            receitaDto.setContaBancariaId(dto.contaBancariaId());
+
+            if (projetoSalvo.getParcelas() != null && !projetoSalvo.getParcelas().isEmpty()) {
+                receitaDto.setTipoRecorrencia(TipoRecorrencia.PARCELADA);
+                receitaDto.setModoDistribuicao("PERSONALIZADO");
+                receitaDto.setValorTotal(projetoSalvo.getValorTotal() != null ? projetoSalvo.getValorTotal() : BigDecimal.ZERO);
+
+                List<ParcelaPersonalizadaDTO> parcs = new ArrayList<>();
+                for (ParcelaProjeto p : projetoSalvo.getParcelas()) {
+                    ParcelaPersonalizadaDTO pp = new ParcelaPersonalizadaDTO();
+                    pp.setValor(p.getValor());
+                    pp.setDataVencimento(p.getDataVencimento());
+                    parcs.add(pp);
+                }
+                receitaDto.setParcelasPersonalizadas(parcs);
+                receitaDto.setQuantidadeParcelas(parcs.size());
+            } else if (projetoSalvo.getValorContratoMensal() != null && projetoSalvo.getValorContratoMensal().compareTo(BigDecimal.ZERO) > 0) {
+                receitaDto.setTipoRecorrencia(TipoRecorrencia.RECORRENTE);
+                receitaDto.setPeriodicidade(Periodicidade.MENSAL);
+                receitaDto.setValorPrevisto(projetoSalvo.getValorContratoMensal());
+            } else {
+                receitaDto.setTipoRecorrencia(TipoRecorrencia.UNICA);
+                receitaDto.setValorPrevisto(projetoSalvo.getValorTotal() != null ? projetoSalvo.getValorTotal() : BigDecimal.ZERO);
+            }
+
+            try {
+                receitaService.criar(receitaDto, usuarioLogado);
+            } catch (Exception e) {
+                throw new ExcecoesCustomizada("Erro ao gerar parcelas no financeiro: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
+        }
+
         return mapToDTO(projetoSalvo);
     }
 
     @Override
-    public Page<ProjetoResponseDTO> listarProjetos(Pageable pageable) {
+    public Page<ProjetoResponseDTO> listarProjetos(String search, Pageable pageable) {
+        if (search != null && !search.trim().isEmpty()) {
+            return projetoRepository.buscarPorTermo(search, pageable).map(this::mapToDTO);
+        }
         return projetoRepository.findAll(pageable).map(this::mapToDTO);
     }
 
@@ -432,6 +518,14 @@ public class ProjetoServiceImp implements ProjetoService {
             throw new ExcecoesCustomizada("Projeto não encontrado", HttpStatus.NOT_FOUND);
         }
         projetoRepository.deleteById(id);
+    }
+
+    @Override
+    public List<ProjetoResponseDTO> listarSMPsPorProjeto(UUID projetoOrigemId) {
+        return projetoRepository.findByProjetoOrigemIdAndTipoProjeto(projetoOrigemId, TipoProjeto.SMP)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     // Mapper manual auxiliar

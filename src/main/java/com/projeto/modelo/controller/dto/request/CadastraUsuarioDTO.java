@@ -8,9 +8,11 @@ public record CadastraUsuarioDTO(
         String email, 
         String nome, 
         String senha,
+        String status,
         String cargo,
         String telefone,
         String permissao,
+        String tipoContratacao,
         String chavePix,
         String cep,
         String logradouro,
@@ -34,10 +36,6 @@ public record CadastraUsuarioDTO(
 
         if (StringUtils.isNullOrEmpty(nome)) {
             throw new ExcecoesCustomizada("nome não pode ficar em branco", HttpStatus.BAD_REQUEST);
-        }
-
-        if (StringUtils.isNullOrEmpty(senha)) {
-            throw new ExcecoesCustomizada("senha não pode ficar em branco", HttpStatus.BAD_REQUEST);
         }
     }
 }

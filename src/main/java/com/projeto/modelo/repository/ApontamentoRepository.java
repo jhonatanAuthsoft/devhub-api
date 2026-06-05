@@ -16,6 +16,8 @@ public interface ApontamentoRepository extends JpaRepository<Apontamento, UUID>,
 
     List<Apontamento> findByProjetoId(UUID projetoId);
     
+    List<Apontamento> findByDataApontamentoBetween(LocalDate dataInicio, LocalDate dataFim);
+    
     List<Apontamento> findByProjetoIdAndDataApontamentoBetween(UUID projetoId, LocalDate dataInicio, LocalDate dataFim);
 
     @Query("SELECT COALESCE(SUM(a.horas), 0) FROM Apontamento a WHERE a.projeto.id = :projetoId")

@@ -153,7 +153,11 @@ public class ClienteService {
 
     // Métodos paginados
     @Transactional(readOnly = true)
-    public Page<ClienteResponseDTO> listarTodosPaginado(Pageable pageable) {
+    public Page<ClienteResponseDTO> listarTodosPaginado(String search, Pageable pageable) {
+        if (search != null && !search.trim().isEmpty()) {
+            return clienteRepository.buscarPorTermo(search, pageable)
+                    .map(this::toResponseDTO);
+        }
         return clienteRepository.findAll(pageable)
                 .map(this::toResponseDTO);
     }

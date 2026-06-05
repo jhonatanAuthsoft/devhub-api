@@ -3,6 +3,7 @@ package com.projeto.modelo.model.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.projeto.modelo.model.enums.PermissaoStatus;
 import com.projeto.modelo.model.enums.UsuarioStatus;
+import com.projeto.modelo.model.enums.TipoContratacao;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -43,6 +44,10 @@ public class Usuario extends BaseEntity  implements UserDetails, Serializable {
     @Column(name = "permissao")
     @Enumerated(EnumType.STRING)
     private PermissaoStatus permissao;
+
+    @Column(name = "tipo_contratacao")
+    @Enumerated(EnumType.STRING)
+    private TipoContratacao tipoContratacao = TipoContratacao.FREELANCER;
 
     @Column(name = "nome")
     private String nome;
@@ -144,6 +149,8 @@ public class Usuario extends BaseEntity  implements UserDetails, Serializable {
     public void setCodigoTrocaSenha(Integer codigoTrocaSenha) { this.codigoTrocaSenha = codigoTrocaSenha; }
     public PermissaoStatus getPermissao() { return permissao; }
     public void setPermissao(PermissaoStatus permissao) { this.permissao = permissao; }
+    public TipoContratacao getTipoContratacao() { return tipoContratacao; }
+    public void setTipoContratacao(TipoContratacao tipoContratacao) { this.tipoContratacao = tipoContratacao; }
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
     public String getCargo() { return cargo; }
@@ -191,6 +198,7 @@ public class Usuario extends BaseEntity  implements UserDetails, Serializable {
         private UsuarioStatus status;
         private Integer codigoTrocaSenha;
         private PermissaoStatus permissao;
+        private TipoContratacao tipoContratacao;
         private String nome;
         private String cargo;
         private String telefone;
@@ -215,6 +223,7 @@ public class Usuario extends BaseEntity  implements UserDetails, Serializable {
         public UsuarioBuilder status(UsuarioStatus status) { this.status = status; return this; }
         public UsuarioBuilder codigoTrocaSenha(Integer codigoTrocaSenha) { this.codigoTrocaSenha = codigoTrocaSenha; return this; }
         public UsuarioBuilder permissao(PermissaoStatus permissao) { this.permissao = permissao; return this; }
+        public UsuarioBuilder tipoContratacao(TipoContratacao tipoContratacao) { this.tipoContratacao = tipoContratacao; return this; }
         public UsuarioBuilder nome(String nome) { this.nome = nome; return this; }
         public UsuarioBuilder cargo(String cargo) { this.cargo = cargo; return this; }
         public UsuarioBuilder telefone(String telefone) { this.telefone = telefone; return this; }
@@ -241,6 +250,7 @@ public class Usuario extends BaseEntity  implements UserDetails, Serializable {
             usuario.setStatus(status);
             usuario.setCodigoTrocaSenha(codigoTrocaSenha);
             usuario.setPermissao(permissao);
+            usuario.setTipoContratacao(tipoContratacao != null ? tipoContratacao : TipoContratacao.FREELANCER);
             usuario.setNome(nome);
             usuario.setCargo(cargo);
             usuario.setTelefone(telefone);

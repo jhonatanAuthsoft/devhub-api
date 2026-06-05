@@ -12,4 +12,7 @@ public interface EmailService {
      void cadastraUsuario(String toEmail, String senha);
 
      void enviarEmailEsqueceuSenha(String toEmail);
+
+     @Async
+     void enviarAlertaHorasPendentes(String toEmail, String nomeColaborador, String nomeProjeto);
 }

@@ -31,9 +31,10 @@ public class ProjetoController {
 
     @GetMapping
     public ResponseEntity<Page<ProjetoResponseDTO>> listarProjetos(
+            @RequestParam(required = false) String search,
             @PageableDefault(sort = "titulo", direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        return ResponseEntity.ok(projetoService.listarProjetos(pageable));
+        return ResponseEntity.ok(projetoService.listarProjetos(search, pageable));
     }
 
     @GetMapping("/{id}")
@@ -55,5 +56,10 @@ public class ProjetoController {
     public ResponseEntity<Void> deletarProjeto(@PathVariable UUID id) {
         projetoService.deletarProjeto(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/smps")
+    public ResponseEntity<List<ProjetoResponseDTO>> listarSMPsPorProjeto(@PathVariable UUID id) {
+        return ResponseEntity.ok(projetoService.listarSMPsPorProjeto(id));
     }
 }

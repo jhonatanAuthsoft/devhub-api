@@ -29,5 +29,6 @@ public record CadastrarProjetoDTO(
     StatusProjeto status,
     List<ParcelaProjetoRequestDTO> parcelas,
     List<LinkProjetoRequestDTO> links,
-    List<EquipeProjetoRequestDTO> equipe
+    List<EquipeProjetoRequestDTO> equipe,
+    UUID contaBancariaId
 ) {}

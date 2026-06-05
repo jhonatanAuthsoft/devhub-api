@@ -1,0 +1,2 @@
+ALTER TABLE usuario
+ADD COLUMN tipo_contratacao VARCHAR(20) DEFAULT 'FREELANCER';

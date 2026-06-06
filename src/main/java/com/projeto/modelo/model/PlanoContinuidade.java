@@ -32,22 +32,22 @@ public class PlanoContinuidade {
     private Boolean recomendado = false;
 
     // Benefícios
-    @Column(nullable = false)
+    @Column(name = "beneficio1_titulo", nullable = false)
     private String beneficio1Titulo;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "beneficio1_descricao", columnDefinition = "TEXT")
     private String beneficio1Descricao;
 
-    @Column(nullable = false)
+    @Column(name = "beneficio2_titulo", nullable = false)
     private String beneficio2Titulo;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "beneficio2_descricao", columnDefinition = "TEXT")
     private String beneficio2Descricao;
 
-    @Column(nullable = false)
+    @Column(name = "beneficio3_titulo", nullable = false)
     private String beneficio3Titulo;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "beneficio3_descricao", columnDefinition = "TEXT")
     private String beneficio3Descricao;
 
     // Planos de Pagamento

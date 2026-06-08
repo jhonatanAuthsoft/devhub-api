@@ -25,6 +25,7 @@ public class PessoaRequestDTO {
     private Boolean recebeBoleto;
     private Boolean recebeNf;
     private Boolean recebeContrato;
+    private Boolean ativo;
 
     public UUID getClienteId() { return clienteId; }
     public void setClienteId(UUID clienteId) { this.clienteId = clienteId; }
@@ -46,4 +47,6 @@ public class PessoaRequestDTO {
     public void setRecebeNf(Boolean recebeNf) { this.recebeNf = recebeNf; }
     public Boolean getRecebeContrato() { return recebeContrato; }
     public void setRecebeContrato(Boolean recebeContrato) { this.recebeContrato = recebeContrato; }
+    public Boolean getAtivo() { return ativo; }
+    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
 }

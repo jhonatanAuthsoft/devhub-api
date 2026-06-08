@@ -17,9 +17,10 @@ import org.springframework.stereotype.Repository;
 public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     
     @Query("SELECT u FROM Usuario u WHERE " +
-           "LOWER(u.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(u.cargo) LIKE LOWER(CONCAT('%', :search, '%'))")
-    Page<Usuario> buscarPorTermo(@Param("search") String search, Pageable pageable);
+           "(:status IS NULL OR u.status = :status) AND " +
+           "(LOWER(u.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(u.cargo) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Usuario> buscarPorTermoEStatus(@Param("search") String search, @Param("status") UsuarioStatus status, Pageable pageable);
     
     Optional<Usuario> findByEmail(String email);
     Optional<Usuario> findByEmailAndCodigoTrocaSenha(String email, Integer codigo);

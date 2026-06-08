@@ -45,6 +45,7 @@ public class PessoaService {
                 .recebeBoleto(dto.getRecebeBoleto() != null ? dto.getRecebeBoleto() : false)
                 .recebeNf(dto.getRecebeNf() != null ? dto.getRecebeNf() : false)
                 .recebeContrato(dto.getRecebeContrato() != null ? dto.getRecebeContrato() : false)
+                .ativo(dto.getAtivo() != null ? dto.getAtivo() : true)
                 .build();
 
         Pessoa saved = pessoaRepository.save(pessoa);
@@ -71,6 +72,9 @@ public class PessoaService {
         pessoa.setRecebeBoleto(dto.getRecebeBoleto() != null ? dto.getRecebeBoleto() : false);
         pessoa.setRecebeNf(dto.getRecebeNf() != null ? dto.getRecebeNf() : false);
         pessoa.setRecebeContrato(dto.getRecebeContrato() != null ? dto.getRecebeContrato() : false);
+        if (dto.getAtivo() != null) {
+            pessoa.setAtivo(dto.getAtivo());
+        }
 
         Pessoa updated = pessoaRepository.save(pessoa);
         return toResponseDTO(updated);
@@ -84,9 +88,10 @@ public class PessoaService {
     }
 
     @Transactional(readOnly = true)
-    public List<PessoaResponseDTO> listarTodas(String search) {
-        if (search != null && !search.trim().isEmpty()) {
-            return pessoaRepository.buscarPorTermo(search).stream()
+    public List<PessoaResponseDTO> listarTodas(String search, Boolean ativo) {
+        if ((search != null && !search.trim().isEmpty()) || ativo != null) {
+            String searchTerm = (search != null && !search.trim().isEmpty()) ? search : "";
+            return pessoaRepository.buscarPorTermoEAtivo(searchTerm, ativo).stream()
                     .map(this::toResponseDTO)
                     .collect(Collectors.toList());
         }

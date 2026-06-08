@@ -27,6 +27,7 @@ public class PessoaResponseDTO {
     private Boolean recebeBoleto;
     private Boolean recebeNf;
     private Boolean recebeContrato;
+    private Boolean ativo;
     
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;
@@ -53,6 +54,8 @@ public class PessoaResponseDTO {
     public void setRecebeNf(Boolean recebeNf) { this.recebeNf = recebeNf; }
     public Boolean getRecebeContrato() { return recebeContrato; }
     public void setRecebeContrato(Boolean recebeContrato) { this.recebeContrato = recebeContrato; }
+    public Boolean getAtivo() { return ativo; }
+    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
     public LocalDateTime getDataCriacao() { return dataCriacao; }
     public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
     public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
@@ -74,6 +77,7 @@ public class PessoaResponseDTO {
         private Boolean recebeBoleto;
         private Boolean recebeNf;
         private Boolean recebeContrato;
+        private Boolean ativo;
         private LocalDateTime dataCriacao;
         private LocalDateTime dataAtualizacao;
 
@@ -88,6 +92,7 @@ public class PessoaResponseDTO {
         public PessoaResponseDTOBuilder recebeBoleto(Boolean recebeBoleto) { this.recebeBoleto = recebeBoleto; return this; }
         public PessoaResponseDTOBuilder recebeNf(Boolean recebeNf) { this.recebeNf = recebeNf; return this; }
         public PessoaResponseDTOBuilder recebeContrato(Boolean recebeContrato) { this.recebeContrato = recebeContrato; return this; }
+        public PessoaResponseDTOBuilder ativo(Boolean ativo) { this.ativo = ativo; return this; }
         public PessoaResponseDTOBuilder dataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; return this; }
         public PessoaResponseDTOBuilder dataAtualizacao(LocalDateTime dataAtualizacao) { this.dataAtualizacao = dataAtualizacao; return this; }
 
@@ -104,6 +109,7 @@ public class PessoaResponseDTO {
             dto.setRecebeBoleto(recebeBoleto);
             dto.setRecebeNf(recebeNf);
             dto.setRecebeContrato(recebeContrato);
+            dto.setAtivo(ativo);
             dto.setDataCriacao(dataCriacao);
             dto.setDataAtualizacao(dataAtualizacao);
             return dto;

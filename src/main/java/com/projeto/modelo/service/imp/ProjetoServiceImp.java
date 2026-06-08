@@ -303,9 +303,11 @@ public class ProjetoServiceImp implements ProjetoService {
     }
 
     @Override
-    public Page<ProjetoResponseDTO> listarProjetos(String search, Pageable pageable) {
-        if (search != null && !search.trim().isEmpty()) {
-            return projetoRepository.buscarPorTermo(search, pageable).map(this::mapToDTO);
+    public Page<ProjetoResponseDTO> listarProjetos(String search, java.util.List<com.projeto.modelo.model.enums.StatusProjeto> statuses, Pageable pageable) {
+        if ((search != null && !search.trim().isEmpty()) || (statuses != null && !statuses.isEmpty())) {
+            String searchTerm = (search != null && !search.trim().isEmpty()) ? search : "";
+            List<com.projeto.modelo.model.enums.StatusProjeto> statusList = (statuses != null && !statuses.isEmpty()) ? statuses : null;
+            return projetoRepository.buscarPorTermoEStatus(searchTerm, statusList, pageable).map(this::mapToDTO);
         }
         return projetoRepository.findAll(pageable).map(this::mapToDTO);
     }

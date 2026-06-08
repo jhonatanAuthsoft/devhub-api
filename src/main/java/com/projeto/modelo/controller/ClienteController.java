@@ -84,16 +84,10 @@ public class ClienteController {
         Pageable pageable = PageRequest.of(page, size, Sort.by("dataCriacao").descending());
         Page<ClienteResponseDTO> response;
         
-        if (status != null && tipo != null) {
-            // Note: service.listarTodosPaginado with search isn't combining with status/tipo right now,
-            // but for global search it will just use search or fetch all.
-            response = clienteService.listarTodosPaginado(search, pageable);
-        } else if (status != null) {
-            response = clienteService.listarPorStatusPaginado(status, pageable);
-        } else if (tipo != null) {
+        if (tipo != null) {
             response = clienteService.listarPorTipoPaginado(tipo, pageable);
         } else {
-            response = clienteService.listarTodosPaginado(search, pageable);
+            response = clienteService.listarTodosPaginado(search, status, pageable);
         }
         
         return ResponseEntity.ok(response);

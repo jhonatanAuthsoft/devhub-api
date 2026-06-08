@@ -166,10 +166,11 @@ public class UsuarioServiceImp implements UsuarioService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<UsuarioResposeDTO> listarUsuariosPaginado(String search, Pageable pageable) {
+    public Page<UsuarioResposeDTO> listarUsuariosPaginado(String search, UsuarioStatus status, Pageable pageable) {
         Page<Usuario> usuarios;
-        if (search != null && !search.trim().isEmpty()) {
-            usuarios = this.usuarioRepository.buscarPorTermo(search, pageable);
+        if ((search != null && !search.trim().isEmpty()) || status != null) {
+            String searchTerm = (search != null && !search.trim().isEmpty()) ? search : "";
+            usuarios = this.usuarioRepository.buscarPorTermoEStatus(searchTerm, status, pageable);
         } else {
             usuarios = this.usuarioRepository.findAll(pageable);
         }

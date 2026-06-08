@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface ProjetoService {
     ProjetoResponseDTO cadastrarProjeto(CadastrarProjetoDTO dto);
-    Page<ProjetoResponseDTO> listarProjetos(String search, Pageable pageable);
+    Page<ProjetoResponseDTO> listarProjetos(String search, java.util.List<com.projeto.modelo.model.enums.StatusProjeto> statuses, Pageable pageable);
     ProjetoResponseDTO buscarPorId(UUID id);
     ProjetoResponseDTO atualizarProjeto(UUID id, CadastrarProjetoDTO dto);
     List<ProjetoResponseDTO> listarProjetosPorColaborador(UUID colaboradorId);

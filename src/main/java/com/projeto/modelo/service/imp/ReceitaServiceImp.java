@@ -214,8 +214,14 @@ public class ReceitaServiceImp implements ReceitaService {
     public List<ReceitaResponseDTO> listarTodos(LocalDate dataInicio, LocalDate dataFim, UUID categoriaId) {
         return repository.findAll().stream()
                 .filter(r -> r.getExcluidoEm() == null)
-                .filter(r -> dataInicio == null || !r.getDataVencimento().isBefore(dataInicio))
-                .filter(r -> dataFim == null || !r.getDataVencimento().isAfter(dataFim))
+                .filter(r -> {
+                    boolean noPeriodo = (dataInicio == null || !r.getDataVencimento().isBefore(dataInicio)) &&
+                                        (dataFim == null || !r.getDataVencimento().isAfter(dataFim));
+                    boolean pendentePassado = (r.getStatus() == com.projeto.modelo.model.enums.StatusReceita.PENDENTE || 
+                                               r.getStatus() == com.projeto.modelo.model.enums.StatusReceita.EM_ATRASO) &&
+                                              (dataInicio != null && r.getDataVencimento().isBefore(dataInicio));
+                    return noPeriodo || pendentePassado;
+                })
                 .filter(r -> categoriaId == null || (r.getCategoria() != null && r.getCategoria().getId().equals(categoriaId)))
                 .map(ReceitaResponseDTO::fromEntity).collect(Collectors.toList());
     }

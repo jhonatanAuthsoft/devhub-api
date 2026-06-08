@@ -6,6 +6,7 @@ import com.projeto.modelo.controller.dto.request.CadastraUsuarioDTO;
 import com.projeto.modelo.controller.dto.request.UsuarioEsqueceuSenhaRequestDTO;
 import com.projeto.modelo.controller.dto.request.ValidaTrocaSenhaRequestDTO;
 import com.projeto.modelo.controller.dto.response.UsuarioResposeDTO;
+import com.projeto.modelo.model.enums.UsuarioStatus;
 import com.projeto.modelo.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

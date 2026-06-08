@@ -6,6 +6,7 @@ import com.projeto.modelo.controller.dto.request.ValidaTrocaSenhaRequestDTO;
 import com.projeto.modelo.controller.dto.response.AuthenticatedResposeDTO;
 import com.projeto.modelo.controller.dto.response.UsuarioResposeDTO;
 import com.projeto.modelo.model.entity.Usuario;
+import com.projeto.modelo.model.enums.UsuarioStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

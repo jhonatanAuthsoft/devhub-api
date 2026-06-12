@@ -270,10 +270,7 @@ public class DespesaServiceImp implements DespesaService {
                 .filter(r -> {
                     boolean noPeriodo = (dataInicio == null || !r.getDataVencimento().isBefore(dataInicio)) &&
                                         (dataFim == null || !r.getDataVencimento().isAfter(dataFim));
-                    boolean pendentePassado = (r.getStatus() == com.projeto.modelo.model.enums.StatusDespesa.PENDENTE || 
-                                               r.getStatus() == com.projeto.modelo.model.enums.StatusDespesa.ATRASADO) &&
-                                              (dataInicio != null && r.getDataVencimento().isBefore(dataInicio));
-                    return noPeriodo || pendentePassado;
+                    return noPeriodo;
                 })
                 .filter(r -> categoriaId == null || (r.getCategoria() != null && r.getCategoria().getId().equals(categoriaId)))
                 .map(DespesaResponseDTO::fromEntity).collect(Collectors.toList());

@@ -20,4 +20,5 @@ public interface DespesaService {
     List<DespesaResponseDTO> estornar(UUID id, EstornarDespesaDTO dto, Usuario usuarioLogado);
     void atualizarStatusAtraso();
     List<com.projeto.modelo.controller.dto.response.SugestaoPagamentoDTO> buscarSugestoesPagamento(String mesAno);
+    java.util.Map<String, java.math.BigDecimal> buscarProjecaoSalarios(LocalDate dataInicio, LocalDate dataFim);
 }

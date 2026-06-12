@@ -76,4 +76,11 @@ public class DespesaController {
             @RequestParam String mesAno) {
         return ResponseEntity.ok(service.buscarSugestoesPagamento(mesAno));
     }
+
+    @GetMapping("/projecao-salarios")
+    public ResponseEntity<java.util.Map<String, java.math.BigDecimal>> buscarProjecaoSalarios(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
+        return ResponseEntity.ok(service.buscarProjecaoSalarios(dataInicio, dataFim));
+    }
 }

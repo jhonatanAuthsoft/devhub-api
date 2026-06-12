@@ -32,9 +32,10 @@ public class ProjetoController {
     @GetMapping
     public ResponseEntity<Page<ProjetoResponseDTO>> listarProjetos(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) java.util.List<com.projeto.modelo.model.enums.StatusProjeto> statuses,
             @PageableDefault(sort = "titulo", direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        return ResponseEntity.ok(projetoService.listarProjetos(search, pageable));
+        return ResponseEntity.ok(projetoService.listarProjetos(search, statuses, pageable));
     }
 
     @GetMapping("/{id}")

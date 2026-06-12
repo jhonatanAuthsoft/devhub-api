@@ -303,9 +303,11 @@ public class ProjetoServiceImp implements ProjetoService {
     }
 
     @Override
-    public Page<ProjetoResponseDTO> listarProjetos(String search, Pageable pageable) {
-        if (search != null && !search.trim().isEmpty()) {
-            return projetoRepository.buscarPorTermo(search, pageable).map(this::mapToDTO);
+    public Page<ProjetoResponseDTO> listarProjetos(String search, java.util.List<com.projeto.modelo.model.enums.StatusProjeto> statuses, Pageable pageable) {
+        if ((search != null && !search.trim().isEmpty()) || (statuses != null && !statuses.isEmpty())) {
+            String searchTerm = (search != null && !search.trim().isEmpty()) ? search : "";
+            List<com.projeto.modelo.model.enums.StatusProjeto> statusList = (statuses != null && !statuses.isEmpty()) ? statuses : null;
+            return projetoRepository.buscarPorTermoEStatus(searchTerm, statusList, pageable).map(this::mapToDTO);
         }
         return projetoRepository.findAll(pageable).map(this::mapToDTO);
     }
@@ -493,19 +495,15 @@ public class ProjetoServiceImp implements ProjetoService {
                 .filter(p -> {
                     // 1. Tipos permitidos
                     boolean tipoValido = p.getTipoProjeto() == TipoProjeto.SOB_MEDIDA ||
-                                         p.getTipoProjeto() == TipoProjeto.HORAS_AVULSA ||
-                                         p.getTipoProjeto() == TipoProjeto.ALOCACAO ||
-                                         p.getTipoProjeto() == TipoProjeto.REPASSE_DE_DEMANDA;
-                    
-                    if (!tipoValido) return false;
-
-                    // 2. Filtrar se o colaborador TEM usaSalarioFixo == false neste projeto
-                    // Aplica para TODOS os tipos (SOB_MEDIDA, AVULSA, ALOCACAO)
-                    return p.getEquipe().stream()
-                            .filter(e -> e.getColaborador().getId().equals(colaboradorId))
-                            .findFirst()
-                            .map(e -> Boolean.FALSE.equals(e.getUsaSalarioFixo())) 
-                            .orElse(false); 
+                           p.getTipoProjeto() == TipoProjeto.HORAS_AVULSA ||
+                           p.getTipoProjeto() == TipoProjeto.ALOCACAO ||
+                           p.getTipoProjeto() == TipoProjeto.REPASSE_DE_DEMANDA;
+                           
+                    // 2. Status permitidos (Em Andamento ou Em Garantia)
+                    boolean statusValido = p.getStatus() == StatusProjeto.EM_ANDAMENTO || 
+                                           p.getStatus() == StatusProjeto.EM_GARANTIA;
+                                           
+                    return tipoValido && statusValido;
                 })
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());

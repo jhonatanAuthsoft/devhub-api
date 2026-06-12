@@ -1,0 +1,2 @@
+ALTER TABLE pessoa
+ADD COLUMN ativo BOOLEAN DEFAULT true;

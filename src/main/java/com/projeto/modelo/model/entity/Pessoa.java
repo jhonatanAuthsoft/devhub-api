@@ -53,6 +53,10 @@ public class Pessoa extends BaseEntity {
     @Builder.Default
     private Boolean recebeContrato = false;
 
+    @Column(name = "ativo")
+    @Builder.Default
+    private Boolean ativo = true;
+
     public Cliente getCliente() { return cliente; }
     public void setCliente(Cliente cliente) { this.cliente = cliente; }
     public TipoPessoaVinculo getTipoPessoa() { return tipoPessoa; }
@@ -73,6 +77,8 @@ public class Pessoa extends BaseEntity {
     public void setRecebeNf(Boolean recebeNf) { this.recebeNf = recebeNf; }
     public Boolean getRecebeContrato() { return recebeContrato; }
     public void setRecebeContrato(Boolean recebeContrato) { this.recebeContrato = recebeContrato; }
+    public Boolean getAtivo() { return ativo; }
+    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
 
     public static PessoaBuilder builder() {
         return new PessoaBuilder();
@@ -89,6 +95,7 @@ public class Pessoa extends BaseEntity {
         private Boolean recebeBoleto = false;
         private Boolean recebeNf = false;
         private Boolean recebeContrato = false;
+        private Boolean ativo = true;
         // BaseEntity fields if needed for builder? Usually not for creation mostly.
         // But if needed, we can add them. For now, matching standard use.
 
@@ -102,6 +109,7 @@ public class Pessoa extends BaseEntity {
         public PessoaBuilder recebeBoleto(Boolean recebeBoleto) { this.recebeBoleto = recebeBoleto; return this; }
         public PessoaBuilder recebeNf(Boolean recebeNf) { this.recebeNf = recebeNf; return this; }
         public PessoaBuilder recebeContrato(Boolean recebeContrato) { this.recebeContrato = recebeContrato; return this; }
+        public PessoaBuilder ativo(Boolean ativo) { this.ativo = ativo; return this; }
 
         public Pessoa build() {
             Pessoa pessoa = new Pessoa();
@@ -115,6 +123,7 @@ public class Pessoa extends BaseEntity {
             pessoa.setRecebeBoleto(recebeBoleto);
             pessoa.setRecebeNf(recebeNf);
             pessoa.setRecebeContrato(recebeContrato);
+            pessoa.setAtivo(ativo);
             return pessoa;
         }
     }

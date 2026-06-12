@@ -6,6 +6,7 @@ import com.projeto.modelo.controller.dto.request.ValidaTrocaSenhaRequestDTO;
 import com.projeto.modelo.controller.dto.response.AuthenticatedResposeDTO;
 import com.projeto.modelo.controller.dto.response.UsuarioResposeDTO;
 import com.projeto.modelo.model.entity.Usuario;
+import com.projeto.modelo.model.enums.UsuarioStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,5 +30,5 @@ public interface UsuarioService {
     void esqueceuSenha(UsuarioEsqueceuSenhaRequestDTO usuarioEsqueceuSenhaRequestDTO);
 
     @Transactional(readOnly = true)
-    Page<UsuarioResposeDTO> listarUsuariosPaginado(String search, Pageable pageable);
+    Page<UsuarioResposeDTO> listarUsuariosPaginado(String search, UsuarioStatus status, Pageable pageable);
 }

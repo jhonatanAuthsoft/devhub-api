@@ -14,10 +14,13 @@ import java.util.UUID;
 public interface PessoaRepository extends JpaRepository<Pessoa, UUID> {
     
     @Query("SELECT p FROM Pessoa p WHERE " +
-           "LOWER(p.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "(:ativo IS NULL OR p.ativo = :ativo) AND " +
+           "(LOWER(p.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(p.cargo) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(p.cliente.nome) LIKE LOWER(CONCAT('%', :search, '%'))")
-    List<Pessoa> buscarPorTermo(@Param("search") String search);
+           "LOWER(p.cliente.nome) LIKE LOWER(CONCAT('%', :search, '%')))")
+    List<Pessoa> buscarPorTermoEAtivo(@Param("search") String search, @Param("ativo") Boolean ativo);
+    
+    List<Pessoa> findByAtivo(Boolean ativo);
     
     List<Pessoa> findByClienteId(UUID clienteId);
     

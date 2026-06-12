@@ -55,14 +55,16 @@ public class PessoaController {
     @GetMapping
     public ResponseEntity<List<PessoaResponseDTO>> listarTodas(
             @RequestParam(required = false) TipoPessoaVinculo tipo,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean ativo) {
         
         List<PessoaResponseDTO> response;
         
         if (tipo != null) {
+            // Note: listarPorTipo currently doesn't filter by ativo or search
             response = pessoaService.listarPorTipo(tipo);
         } else {
-            response = pessoaService.listarTodas(search);
+            response = pessoaService.listarTodas(search, ativo);
         }
         
         return ResponseEntity.ok(response);

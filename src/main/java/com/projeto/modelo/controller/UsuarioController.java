@@ -6,6 +6,7 @@ import com.projeto.modelo.controller.dto.request.CadastraUsuarioDTO;
 import com.projeto.modelo.controller.dto.request.UsuarioEsqueceuSenhaRequestDTO;
 import com.projeto.modelo.controller.dto.request.ValidaTrocaSenhaRequestDTO;
 import com.projeto.modelo.controller.dto.response.UsuarioResposeDTO;
+import com.projeto.modelo.model.enums.UsuarioStatus;
 import com.projeto.modelo.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -54,9 +55,10 @@ public class UsuarioController {
     public ResponseEntity<Page<UsuarioResposeDTO>> listarUsuarios(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) UsuarioStatus status) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("nome").ascending());
-        Page<UsuarioResposeDTO> usuarios = this.usuarioService.listarUsuariosPaginado(search, pageable);
+        Page<UsuarioResposeDTO> usuarios = this.usuarioService.listarUsuariosPaginado(search, status, pageable);
         return ResponseEntity.ok(usuarios);
     }
 

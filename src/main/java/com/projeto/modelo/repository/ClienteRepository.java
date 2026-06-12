@@ -18,10 +18,11 @@ import java.util.UUID;
 public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
     
     @Query("SELECT c FROM Cliente c WHERE " +
-           "LOWER(c.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "(:status IS NULL OR c.status = :status) AND " +
+           "(LOWER(c.nome) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(c.emailPrincipal) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "c.cpfCnpj LIKE CONCAT('%', :search, '%')")
-    Page<Cliente> buscarPorTermo(@Param("search") String search, Pageable pageable);
+           "c.cpfCnpj LIKE CONCAT('%', :search, '%'))")
+    Page<Cliente> buscarPorTermoEStatus(@Param("search") String search, @Param("status") ClienteStatus status, Pageable pageable);
     
     Optional<Cliente> findByCpfCnpj(String cpfCnpj);
     

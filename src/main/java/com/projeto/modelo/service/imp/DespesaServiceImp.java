@@ -543,4 +543,29 @@ auditLogService.registrarLog("Despesa", d.getId(), AcaoAuditLog.EDITOU, null, "S
         
         return sugestoes;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, BigDecimal> buscarProjecaoSalarios(LocalDate dataInicio, LocalDate dataFim) {
+        Map<String, BigDecimal> projecoes = new HashMap<>();
+        if (dataInicio == null || dataFim == null) return projecoes;
+        
+        YearMonth start = YearMonth.from(dataInicio);
+        YearMonth end = YearMonth.from(dataFim);
+        
+        YearMonth current = start;
+        while (!current.isAfter(end)) {
+            String mesPagamento = current.toString(); // e.g. "2026-07"
+            // buscarSugestoesPagamento expects the month of payment, and it calculates salaries for the previous month
+            List<SugestaoPagamentoDTO> sugestoes = buscarSugestoesPagamento(mesPagamento);
+            
+            BigDecimal totalSugerido = sugestoes.stream()
+                .map(SugestaoPagamentoDTO::getValorPrevisto)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+            projecoes.put(mesPagamento, totalSugerido);
+            current = current.plusMonths(1);
+        }
+        return projecoes;
+    }
 }

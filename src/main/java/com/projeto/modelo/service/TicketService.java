@@ -23,6 +23,7 @@ public class TicketService {
     private final PessoaRepository pessoaRepository;
     private final UsuarioRepository usuarioRepository;
     private final TicketHistoricoStatusRepository historicoRepository;
+    private final NotificacaoTicketService notificacaoTicketService;
 
     @Transactional
     public Ticket criarTicket(Ticket ticketDados, UUID autorId, TipoAutor autorTipo) {
@@ -60,6 +61,8 @@ public class TicketService {
                 .alteradoPorTipo(autorTipo)
                 .build();
         historicoRepository.save(historico);
+
+        notificacaoTicketService.notificarCriacaoTicket(salvo);
 
         return salvo;
     }
@@ -104,6 +107,8 @@ public class TicketService {
                 .direcionadoPara(direcionadoPara)
                 .build();
         historicoRepository.save(historico);
+
+        notificacaoTicketService.notificarMudancaStatusTicket(ticket, statusAnterior, novoStatus);
 
         return ticket;
     }

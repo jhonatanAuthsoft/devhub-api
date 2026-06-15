@@ -81,7 +81,7 @@ public class EmailServiceImp implements EmailService {
     public void cadastraUsuario(String toEmail, String senha) {
         try {
             String corpoEmail = this.corpoCadastroUsuario(senha);
-            this.enviaEmail(toEmail, corpoEmail, "NOME DO SISTEMA - Cadastro de usuário");
+            this.enviarEmailHtml(toEmail, corpoEmail, "NOME DO SISTEMA - Cadastro de usuário");
         } catch (Exception e) {
             log.error("Erro ao enviar e-mail de Cadastro de usuário", e);
         }
@@ -97,7 +97,7 @@ public class EmailServiceImp implements EmailService {
                 this.usuarioRepository.save(emailUsuario.get());
             }
             String corpoEmail = this.corpoEsqueceuSenha(codigoVerificador);
-            this.enviaEmail(toEmail, corpoEmail, "SeuLarMS - Recuperação de senha");
+            this.enviarEmailHtml(toEmail, corpoEmail, "SeuLarMS - Recuperação de senha");
         } catch (Exception e) {
             log.error("Erro ao enviar e-mail de recuperação de senha", e);
         }
@@ -108,7 +108,7 @@ public class EmailServiceImp implements EmailService {
     public void enviarAlertaHorasPendentes(String toEmail, String nomeColaborador, String nomeProjeto) {
         try {
             String corpoEmail = this.corpoAlertaHorasPendentes(nomeColaborador, nomeProjeto);
-            this.enviaEmail(toEmail, corpoEmail, "Aviso DevHub - Registro de Horas Pendente");
+            this.enviarEmailHtml(toEmail, corpoEmail, "Aviso DevHub - Registro de Horas Pendente");
         } catch (Exception e) {
             log.error("Erro ao enviar e-mail de alerta de horas pendentes", e);
         }
@@ -141,7 +141,8 @@ public class EmailServiceImp implements EmailService {
                 .replace("#senha#", String.valueOf(senha));
     }
 
-    private void enviaEmail(String toEmail, String htmlContent, String titulo) {
+    @Override
+    public void enviarEmailHtml(String toEmail, String htmlContent, String titulo) {
         try {
             Session session = Session.getInstance(mailProperties, new Authenticator() {
                 @Override

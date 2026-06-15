@@ -35,4 +35,6 @@ public interface PessoaRepository extends JpaRepository<Pessoa, UUID> {
     List<Pessoa> findByClienteIdAndRecebeBoletoTrue(UUID clienteId);
     
     List<Pessoa> findByClienteIdAndRecebeNfTrue(UUID clienteId);
+    
+    List<Pessoa> findByClienteIdAndPodeAbrirTicketTrueAndAtivoTrue(UUID clienteId);
 }

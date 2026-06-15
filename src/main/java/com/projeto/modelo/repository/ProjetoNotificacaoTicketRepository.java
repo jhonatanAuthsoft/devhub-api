@@ -7,4 +7,6 @@ import java.util.UUID;
 
 @Repository
 public interface ProjetoNotificacaoTicketRepository extends JpaRepository<ProjetoNotificacaoTicket, UUID> {
+    java.util.List<ProjetoNotificacaoTicket> findByProjetoId(UUID projetoId);
+    void deleteByProjetoId(UUID projetoId);
 }

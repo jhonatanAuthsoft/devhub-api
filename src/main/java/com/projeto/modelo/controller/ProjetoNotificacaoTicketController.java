@@ -15,8 +15,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/projetos/{projetoId}/notificacoes-ticket")
+@PreAuthorize("hasAnyRole('ADMIN','GESTOR')")
 public class ProjetoNotificacaoTicketController {
 
     private final ProjetoNotificacaoTicketRepository repository;

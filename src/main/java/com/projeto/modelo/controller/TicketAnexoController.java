@@ -23,10 +23,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/tickets")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@PreAuthorize("hasAnyRole('ADMIN','GESTOR','COLABORADOR','CLIENTE')")
 public class TicketAnexoController {
 
     private final TicketService ticketService;

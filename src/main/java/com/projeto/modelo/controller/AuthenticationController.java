@@ -37,6 +37,11 @@ public class AuthenticationController {
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername().toLowerCase());
         final String jwt = jwtUtil.generateToken(userDetails);
+        
+        if (userDetails instanceof com.projeto.modelo.model.entity.Pessoa) {
+            return usuarioService.retornoAutenticacaoCliente((com.projeto.modelo.model.entity.Pessoa) userDetails, jwt);
+        }
+        
         return usuarioService.retornoAutenticacao(authenticationRequest.getUsername().toLowerCase(), jwt);
     }
 }

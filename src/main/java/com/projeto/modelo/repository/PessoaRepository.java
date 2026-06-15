@@ -10,8 +10,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.UUID;
 
+import java.util.Optional;
+
 @Repository
 public interface PessoaRepository extends JpaRepository<Pessoa, UUID> {
+    Optional<Pessoa> findByEmail(String email);
     
     @Query("SELECT p FROM Pessoa p WHERE " +
            "(:ativo IS NULL OR p.ativo = :ativo) AND " +

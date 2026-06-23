@@ -1,14 +1,14 @@
 package com.projeto.modelo.service;
 
 import com.projeto.modelo.model.entity.Pessoa;
-import com.projeto.modelo.model.entity.ProjetoNotificacaoTicket;
+import com.projeto.modelo.model.entity.EquipeProjeto;
 import com.projeto.modelo.model.entity.Ticket;
 import com.projeto.modelo.model.entity.TicketHistoricoStatus;
 import com.projeto.modelo.model.entity.Usuario;
 import com.projeto.modelo.model.enums.StatusTicket;
 import com.projeto.modelo.repository.EmailService;
 import com.projeto.modelo.repository.PessoaRepository;
-import com.projeto.modelo.repository.ProjetoNotificacaoTicketRepository;
+import com.projeto.modelo.repository.EquipeProjetoRepository;
 import com.projeto.modelo.repository.UsuarioRepository;
 import com.projeto.modelo.util.TemplateUtils;
 import org.slf4j.Logger;
@@ -26,7 +26,7 @@ public class NotificacaoTicketService {
     private static final Logger log = LoggerFactory.getLogger(NotificacaoTicketService.class);
 
     private final EmailService emailService;
-    private final ProjetoNotificacaoTicketRepository projetoNotificacaoTicketRepository;
+    private final EquipeProjetoRepository equipeProjetoRepository;
     private final PessoaRepository pessoaRepository;
     private final UsuarioRepository usuarioRepository;
 
@@ -38,11 +38,11 @@ public class NotificacaoTicketService {
     private static final String TICKET_BLOQUEADO_TEMPLATE = "templates/ticketBloqueado.html";
 
     public NotificacaoTicketService(EmailService emailService,
-                                    ProjetoNotificacaoTicketRepository projetoNotificacaoTicketRepository,
+                                    EquipeProjetoRepository equipeProjetoRepository,
                                     PessoaRepository pessoaRepository,
                                     UsuarioRepository usuarioRepository) {
         this.emailService = emailService;
-        this.projetoNotificacaoTicketRepository = projetoNotificacaoTicketRepository;
+        this.equipeProjetoRepository = equipeProjetoRepository;
         this.pessoaRepository = pessoaRepository;
         this.usuarioRepository = usuarioRepository;
     }
@@ -70,11 +70,11 @@ public class NotificacaoTicketService {
 
             String assunto = "DevHub - Novo Ticket Criado: " + tituloTicket;
 
-            // (a) todos Usuario com notificar_criacao=true no projeto
-            List<ProjetoNotificacaoTicket> configs = projetoNotificacaoTicketRepository.findByProjetoId(ticket.getProjeto().getId());
-            for (ProjetoNotificacaoTicket config : configs) {
-                if (Boolean.TRUE.equals(config.getNotificarCriacao()) && config.getUsuario() != null) {
-                    emailService.enviarEmailHtml(config.getUsuario().getEmail(), html, assunto);
+            // (a) todos Usuario com notificarTicket=true no projeto
+            List<EquipeProjeto> equipe = equipeProjetoRepository.findByProjetoId(ticket.getProjeto().getId());
+            for (EquipeProjeto membro : equipe) {
+                if (Boolean.TRUE.equals(membro.getNotificarTicket()) && membro.getColaborador() != null) {
+                    emailService.enviarEmailHtml(membro.getColaborador().getEmail(), html, assunto);
                 }
             }
 
@@ -105,11 +105,11 @@ public class NotificacaoTicketService {
 
             String assunto = "DevHub - Ticket Atualizado: " + tituloTicket;
 
-            // Notificar usuarios com notificarAtualizacao=true
-            List<ProjetoNotificacaoTicket> configs = projetoNotificacaoTicketRepository.findByProjetoId(ticket.getProjeto().getId());
-            for (ProjetoNotificacaoTicket config : configs) {
-                if (Boolean.TRUE.equals(config.getNotificarAtualizacao()) && config.getUsuario() != null) {
-                    emailService.enviarEmailHtml(config.getUsuario().getEmail(), html, assunto);
+            // Notificar usuarios com notificarTicket=true
+            List<EquipeProjeto> equipe = equipeProjetoRepository.findByProjetoId(ticket.getProjeto().getId());
+            for (EquipeProjeto membro : equipe) {
+                if (Boolean.TRUE.equals(membro.getNotificarTicket()) && membro.getColaborador() != null) {
+                    emailService.enviarEmailHtml(membro.getColaborador().getEmail(), html, assunto);
                 }
             }
 
@@ -142,6 +142,19 @@ public class NotificacaoTicketService {
 
         } catch (IOException e) {
             log.error("Erro ao processar template de notificação de atualização de ticket", e);
+        }
+    }
+
+    public void notificarNovoComentarioTicket(Ticket ticket, com.projeto.modelo.model.entity.TicketComentario comentario) {
+        // Implementação simplificada (mesma lógica de notificarAtualizacao)
+        String assunto = "DevHub - Novo Comentário no Ticket: " + ticket.getTitulo();
+        String html = "<html><body><h3>Novo comentário no ticket '" + ticket.getTitulo() + "'</h3><p>" + comentario.getTexto() + "</p></body></html>";
+        
+        List<EquipeProjeto> equipe = equipeProjetoRepository.findByProjetoId(ticket.getProjeto().getId());
+        for (EquipeProjeto membro : equipe) {
+            if (Boolean.TRUE.equals(membro.getNotificarTicket()) && membro.getColaborador() != null) {
+                emailService.enviarEmailHtml(membro.getColaborador().getEmail(), html, assunto);
+            }
         }
     }
 }

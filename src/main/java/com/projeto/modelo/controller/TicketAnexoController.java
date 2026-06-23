@@ -1,7 +1,7 @@
 package com.projeto.modelo.controller;
 
-import com.projeto.modelo.configuracao.exeption.AcessoNaoAutorizadoException;
 import com.projeto.modelo.dto.TicketAnexoDTO;
+import com.projeto.modelo.model.entity.Pessoa;
 import com.projeto.modelo.model.entity.Ticket;
 import com.projeto.modelo.model.entity.TicketAnexo;
 import com.projeto.modelo.model.entity.Usuario;
@@ -14,7 +14,9 @@ import com.projeto.modelo.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,10 +25,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.security.access.prepost.PreAuthorize;
-
 @RestController
-@RequestMapping("/api/tickets")
+@RequestMapping("/tickets")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @PreAuthorize("hasAnyRole('ADMIN','GESTOR','COLABORADOR','CLIENTE')")
@@ -39,14 +39,26 @@ public class TicketAnexoController {
 
     private static final long MAX_FILE_SIZE = 30 * 1024 * 1024; // 30MB
 
+    private TipoAutor extrairTipoAutor(UserDetails userDetails) {
+        if (userDetails instanceof Pessoa) return TipoAutor.CONTATO_CLIENTE;
+        return TipoAutor.EQUIPE_TECNICA;
+    }
+
+    private UUID extrairAutorId(UserDetails userDetails) {
+        if (userDetails instanceof Pessoa) return ((Pessoa) userDetails).getId();
+        if (userDetails instanceof Usuario) return ((Usuario) userDetails).getId();
+        throw new IllegalStateException("Tipo de usuário desconhecido na sessão.");
+    }
+
     @PostMapping("/{ticketId}/anexos")
     public ResponseEntity<TicketAnexoDTO> uploadAnexo(
             @PathVariable UUID ticketId,
             @RequestParam("arquivo") MultipartFile arquivo,
             @RequestParam("tipo") TipoAnexo tipo,
-            @AuthenticationPrincipal Usuario usuario) { // Assumindo Usuario (EQUIPE_TECNICA) por enquanto
-        
-        validarAcessoTicket(ticketId, usuario);
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        // Validar acesso ao ticket
+        ticketService.buscarPorId(ticketId, extrairAutorId(userDetails), extrairTipoAutor(userDetails));
 
         if (arquivo.getSize() > MAX_FILE_SIZE) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O tamanho do arquivo não pode exceder 30MB.");
@@ -72,11 +84,11 @@ public class TicketAnexoController {
         if (arquivo.getOriginalFilename() != null && arquivo.getOriginalFilename().contains(".")) {
             extensao = arquivo.getOriginalFilename().substring(arquivo.getOriginalFilename().lastIndexOf("."));
         }
-        
-        String path = String.format("tickets/%s/%s/%s%s", 
-                ticket.getProjeto().getId(), 
-                ticketId, 
-                UUID.randomUUID(), 
+
+        String path = String.format("tickets/%s/%s/%s%s",
+                ticket.getProjeto().getId(),
+                ticketId,
+                UUID.randomUUID(),
                 extensao);
 
         String url = s3Service.uploadArquivo(arquivo, path);
@@ -87,8 +99,8 @@ public class TicketAnexoController {
                 .urlArquivo(url)
                 .nomeArquivo(arquivo.getOriginalFilename() != null ? arquivo.getOriginalFilename() : "arquivo_sem_nome")
                 .tamanhoBytes(arquivo.getSize())
-                .enviadoPorId(usuario.getId())
-                .enviadoPorTipo(TipoAutor.EQUIPE_TECNICA) // Atualmente apenas equipe
+                .enviadoPorId(extrairAutorId(userDetails))
+                .enviadoPorTipo(extrairTipoAutor(userDetails))
                 .build();
 
         anexo = anexoRepository.save(anexo);
@@ -99,29 +111,15 @@ public class TicketAnexoController {
     @GetMapping("/{ticketId}/anexos")
     public ResponseEntity<List<TicketAnexoDTO>> listarAnexos(
             @PathVariable UUID ticketId,
-            @AuthenticationPrincipal Usuario usuario) {
-        
-        validarAcessoTicket(ticketId, usuario);
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        // Validar acesso ao ticket
+        ticketService.buscarPorId(ticketId, extrairAutorId(userDetails), extrairTipoAutor(userDetails));
 
         List<TicketAnexo> anexos = anexoRepository.findByTicketId(ticketId);
         List<TicketAnexoDTO> dtos = anexos.stream().map(this::toDTO).collect(Collectors.toList());
-        
-        return ResponseEntity.ok(dtos);
-    }
 
-    private void validarAcessoTicket(UUID ticketId, Usuario usuario) {
-        Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket não encontrado"));
-        
-        // Reutilizar lógica do service de visibilidade
-        try {
-            List<Ticket> visiveis = ticketService.listarTicketsVisiveis(usuario.getId(), TipoAutor.EQUIPE_TECNICA, ticket.getProjeto().getId());
-            if (visiveis.stream().noneMatch(t -> t.getId().equals(ticketId))) {
-                throw new AcessoNaoAutorizadoException("Usuário não tem acesso a este ticket.");
-            }
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado ao ticket.", e);
-        }
+        return ResponseEntity.ok(dtos);
     }
 
     private TicketAnexoDTO toDTO(TicketAnexo anexo) {

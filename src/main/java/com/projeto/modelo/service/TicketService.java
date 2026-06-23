@@ -24,6 +24,7 @@ public class TicketService {
     private final UsuarioRepository usuarioRepository;
     private final TicketHistoricoStatusRepository historicoRepository;
     private final NotificacaoTicketService notificacaoTicketService;
+    private final TicketComentarioRepository comentarioRepository;
 
     @Transactional
     public Ticket criarTicket(Ticket ticketDados, UUID autorId, TipoAutor autorTipo) {
@@ -47,6 +48,7 @@ public class TicketService {
             }
         }
 
+        ticketDados.setProjeto(projeto);
         ticketDados.setAbertoPorId(autorId);
         ticketDados.setAbertoPorTipo(autorTipo);
         ticketDados.setStatusAtual(StatusTicket.ABERTO);
@@ -151,6 +153,49 @@ public class TicketService {
             } else {
                 return ticketRepository.findByProjetoClienteId(contato.getCliente().getId());
             }
+        }
+    }
+
+    public Ticket buscarPorId(UUID ticketId, UUID usuarioId, TipoAutor usuarioTipo) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket não encontrado."));
+        
+        List<Ticket> visiveis = listarTicketsVisiveis(usuarioId, usuarioTipo, ticket.getProjeto().getId());
+        if (visiveis.stream().noneMatch(t -> t.getId().equals(ticketId))) {
+            throw new AcessoNaoAutorizadoException("Usuário não tem acesso a este ticket.");
+        }
+        return ticket;
+    }
+
+    public List<TicketHistoricoStatus> listarHistorico(UUID ticketId, UUID usuarioId, TipoAutor usuarioTipo) {
+        buscarPorId(ticketId, usuarioId, usuarioTipo); // Valida acesso
+        return historicoRepository.findByTicketIdOrderByDataAlteracaoAsc(ticketId);
+    }
+
+    @Transactional
+    public TicketComentario adicionarComentario(UUID ticketId, TicketComentario comentario, UUID autorId, TipoAutor autorTipo) {
+        Ticket ticket = buscarPorId(ticketId, autorId, autorTipo); // Valida acesso
+
+        comentario.setTicket(ticket);
+        comentario.setAutorId(autorId);
+        comentario.setAutorTipo(autorTipo);
+        TicketComentario salvo = comentarioRepository.save(comentario);
+
+        notificacaoTicketService.notificarNovoComentarioTicket(ticket, salvo);
+
+        return salvo;
+    }
+
+    public List<TicketComentario> listarComentarios(UUID ticketId, UUID usuarioId, TipoAutor usuarioTipo) {
+        buscarPorId(ticketId, usuarioId, usuarioTipo); // Valida acesso
+        return comentarioRepository.findByTicketIdOrderByCriadoEmAsc(ticketId);
+    }
+
+    public String getNomeAutor(UUID autorId, TipoAutor autorTipo) {
+        if (autorTipo == TipoAutor.EQUIPE_TECNICA) {
+            return usuarioRepository.findById(autorId).map(Usuario::getNome).orElse("Usuário Desconhecido");
+        } else {
+            return pessoaRepository.findById(autorId).map(Pessoa::getNome).orElse("Contato Desconhecido");
         }
     }
 }

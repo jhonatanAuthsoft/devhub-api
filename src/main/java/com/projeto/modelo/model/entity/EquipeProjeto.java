@@ -41,6 +41,9 @@ public class EquipeProjeto {
     @Column(name = "porcentagem", precision = 5, scale = 2)
     private BigDecimal porcentagem;
 
+    @Column(name = "notificar_ticket")
+    private Boolean notificarTicket;
+
 
     @Column(name = "horas_previstas", precision = 10, scale = 2)
     private BigDecimal horasPrevistas;
@@ -69,6 +72,8 @@ public class EquipeProjeto {
     public void setUsaSalarioFixo(Boolean usaSalarioFixo) { this.usaSalarioFixo = usaSalarioFixo; }
     public BigDecimal getPorcentagem() { return porcentagem; }
     public void setPorcentagem(BigDecimal porcentagem) { this.porcentagem = porcentagem; }
+    public Boolean getNotificarTicket() { return notificarTicket; }
+    public void setNotificarTicket(Boolean notificarTicket) { this.notificarTicket = notificarTicket; }
     public BigDecimal getHorasPrevistas() { return horasPrevistas; }
     public void setHorasPrevistas(BigDecimal horasPrevistas) { this.horasPrevistas = horasPrevistas; }
     public BigDecimal getCustoPrevisto() { return custoPrevisto; }
@@ -87,6 +92,7 @@ public class EquipeProjeto {
         private FuncaoProjeto funcao;
         private Boolean usaSalarioFixo;
         private BigDecimal porcentagem;
+        private Boolean notificarTicket;
         private BigDecimal horasPrevistas;
         private BigDecimal custoPrevisto;
         private LocalDateTime createdAt;
@@ -97,6 +103,7 @@ public class EquipeProjeto {
         public EquipeProjetoBuilder funcao(FuncaoProjeto funcao) { this.funcao = funcao; return this; }
         public EquipeProjetoBuilder usaSalarioFixo(Boolean usaSalarioFixo) { this.usaSalarioFixo = usaSalarioFixo; return this; }
         public EquipeProjetoBuilder porcentagem(BigDecimal porcentagem) { this.porcentagem = porcentagem; return this; }
+        public EquipeProjetoBuilder notificarTicket(Boolean notificarTicket) { this.notificarTicket = notificarTicket; return this; }
         public EquipeProjetoBuilder horasPrevistas(BigDecimal horasPrevistas) { this.horasPrevistas = horasPrevistas; return this; }
         public EquipeProjetoBuilder custoPrevisto(BigDecimal custoPrevisto) { this.custoPrevisto = custoPrevisto; return this; }
         public EquipeProjetoBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
@@ -109,6 +116,7 @@ public class EquipeProjeto {
             equipeProjeto.setFuncao(funcao);
             equipeProjeto.setUsaSalarioFixo(usaSalarioFixo);
             equipeProjeto.setPorcentagem(porcentagem);
+            equipeProjeto.setNotificarTicket(notificarTicket);
             equipeProjeto.setHorasPrevistas(horasPrevistas);
             equipeProjeto.setCustoPrevisto(custoPrevisto);
             equipeProjeto.setCreatedAt(createdAt);

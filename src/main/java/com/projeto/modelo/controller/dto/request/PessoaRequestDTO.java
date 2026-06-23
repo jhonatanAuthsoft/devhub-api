@@ -26,6 +26,8 @@ public class PessoaRequestDTO {
     private Boolean recebeNf;
     private Boolean recebeContrato;
     private Boolean ativo;
+    private Boolean podeAbrirTicket;
+    private String senha;
 
     public UUID getClienteId() { return clienteId; }
     public void setClienteId(UUID clienteId) { this.clienteId = clienteId; }
@@ -49,4 +51,8 @@ public class PessoaRequestDTO {
     public void setRecebeContrato(Boolean recebeContrato) { this.recebeContrato = recebeContrato; }
     public Boolean getAtivo() { return ativo; }
     public void setAtivo(Boolean ativo) { this.ativo = ativo; }
+    public Boolean getPodeAbrirTicket() { return podeAbrirTicket; }
+    public void setPodeAbrirTicket(Boolean podeAbrirTicket) { this.podeAbrirTicket = podeAbrirTicket; }
+    public String getSenha() { return senha; }
+    public void setSenha(String senha) { this.senha = senha; }
 }

@@ -200,6 +200,7 @@ public class ProjetoServiceImp implements ProjetoService {
                         .funcao(equipeDto.funcao())
                         .usaSalarioFixo(equipeDto.usaSalarioFixo())
                         .porcentagem(porcentagemMembro)
+                        .notificarTicket(equipeDto.notificarTicket())
                         .custoPrevisto(custoTotalMembro)
                         .horasPrevistas(horasCalculadas)
                         .build();
@@ -441,6 +442,7 @@ public class ProjetoServiceImp implements ProjetoService {
                         .funcao(equipeDto.funcao())
                         .usaSalarioFixo(equipeDto.usaSalarioFixo())
                         .porcentagem(porcentagemMembro)
+                        .notificarTicket(equipeDto.notificarTicket())
                         .custoPrevisto(custoTotalMembro)
                         .horasPrevistas(horasCalculadas)
                         .build();
@@ -581,7 +583,8 @@ public class ProjetoServiceImp implements ProjetoService {
             e.getUsaSalarioFixo(), 
             e.getPorcentagem(),
             e.getHorasPrevistas(), 
-            e.getCustoPrevisto()
+            e.getCustoPrevisto(),
+            e.getNotificarTicket()
         );
     }
 }

@@ -8,5 +8,6 @@ public record EquipeProjetoRequestDTO(
     UUID colaboradorId,
     FuncaoProjeto funcao,
     Boolean usaSalarioFixo,
-    BigDecimal porcentagem
+    BigDecimal porcentagem,
+    Boolean notificarTicket
 ) {}

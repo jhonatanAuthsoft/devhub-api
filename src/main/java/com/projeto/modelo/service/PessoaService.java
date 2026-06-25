@@ -8,6 +8,7 @@ import com.projeto.modelo.model.enums.TipoPessoaVinculo;
 import com.projeto.modelo.repository.ClienteRepository;
 import com.projeto.modelo.repository.PessoaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ public class PessoaService {
 
     private final PessoaRepository pessoaRepository;
     private final ClienteRepository clienteRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public PessoaResponseDTO criar(PessoaRequestDTO dto) {
@@ -45,6 +47,8 @@ public class PessoaService {
                 .recebeBoleto(dto.getRecebeBoleto() != null ? dto.getRecebeBoleto() : false)
                 .recebeNf(dto.getRecebeNf() != null ? dto.getRecebeNf() : false)
                 .recebeContrato(dto.getRecebeContrato() != null ? dto.getRecebeContrato() : false)
+                .podeAbrirTicket(dto.getPodeAbrirTicket() != null ? dto.getPodeAbrirTicket() : false)
+                .senhaHash(dto.getSenha() != null && !dto.getSenha().trim().isEmpty() ? passwordEncoder.encode(dto.getSenha()) : null)
                 .ativo(dto.getAtivo() != null ? dto.getAtivo() : true)
                 .build();
 
@@ -74,6 +78,12 @@ public class PessoaService {
         pessoa.setRecebeContrato(dto.getRecebeContrato() != null ? dto.getRecebeContrato() : false);
         if (dto.getAtivo() != null) {
             pessoa.setAtivo(dto.getAtivo());
+        }
+        if (dto.getPodeAbrirTicket() != null) {
+            pessoa.setPodeAbrirTicket(dto.getPodeAbrirTicket());
+        }
+        if (dto.getSenha() != null && !dto.getSenha().trim().isEmpty()) {
+            pessoa.setSenhaHash(passwordEncoder.encode(dto.getSenha()));
         }
 
         Pessoa updated = pessoaRepository.save(pessoa);
@@ -148,6 +158,7 @@ public class PessoaService {
                 .recebeBoleto(pessoa.getRecebeBoleto())
                 .recebeNf(pessoa.getRecebeNf())
                 .recebeContrato(pessoa.getRecebeContrato())
+                .podeAbrirTicket(pessoa.getPodeAbrirTicket())
                 .dataCriacao(pessoa.getDataCriacao())
                 .dataAtualizacao(pessoa.getDataAtualizacao())
                 .build();

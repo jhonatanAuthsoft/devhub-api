@@ -15,4 +15,7 @@ public interface EmailService {
 
      @Async
      void enviarAlertaHorasPendentes(String toEmail, String nomeColaborador, String nomeProjeto);
+
+     @Async
+     void enviarEmailHtml(String toEmail, String htmlContent, String titulo);
 }

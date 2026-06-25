@@ -12,5 +12,6 @@ public record EquipeProjetoResponseDTO(
     Boolean usaSalarioFixo,
     BigDecimal porcentagem,
     BigDecimal horasPrevistas,
-    BigDecimal custoPrevisto
+    BigDecimal custoPrevisto,
+    Boolean notificarTicket
 ) {}

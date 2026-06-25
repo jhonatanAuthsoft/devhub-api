@@ -7,6 +7,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 
 @Builder
 @Data
@@ -14,7 +21,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "pessoa")
-public class Pessoa extends BaseEntity {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+public class Pessoa extends BaseEntity implements UserDetails, Serializable {
+    private static final long serialVersionUID = 1L;
+
+    @EqualsAndHashCode.Include
+    @Override
+    public java.util.UUID getId() {
+        return super.getId();
+    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id", nullable = false)
@@ -57,6 +72,20 @@ public class Pessoa extends BaseEntity {
     @Builder.Default
     private Boolean ativo = true;
 
+    @Column(name = "senha_hash")
+    private String senhaHash;
+
+    @Column(name = "pode_abrir_ticket")
+    @Builder.Default
+    private Boolean podeAbrirTicket = false;
+
+    @Column(name = "email_verificado")
+    @Builder.Default
+    private Boolean emailVerificado = false;
+
+    @Column(name = "ultimo_acesso")
+    private java.time.LocalDateTime ultimoAcesso;
+
     public Cliente getCliente() { return cliente; }
     public void setCliente(Cliente cliente) { this.cliente = cliente; }
     public TipoPessoaVinculo getTipoPessoa() { return tipoPessoa; }
@@ -79,6 +108,49 @@ public class Pessoa extends BaseEntity {
     public void setRecebeContrato(Boolean recebeContrato) { this.recebeContrato = recebeContrato; }
     public Boolean getAtivo() { return ativo; }
     public void setAtivo(Boolean ativo) { this.ativo = ativo; }
+    public String getSenhaHash() { return senhaHash; }
+    public void setSenhaHash(String senhaHash) { this.senhaHash = senhaHash; }
+    public Boolean getPodeAbrirTicket() { return podeAbrirTicket; }
+    public void setPodeAbrirTicket(Boolean podeAbrirTicket) { this.podeAbrirTicket = podeAbrirTicket; }
+    public Boolean getEmailVerificado() { return emailVerificado; }
+    public void setEmailVerificado(Boolean emailVerificado) { this.emailVerificado = emailVerificado; }
+    public java.time.LocalDateTime getUltimoAcesso() { return ultimoAcesso; }
+    public void setUltimoAcesso(java.time.LocalDateTime ultimoAcesso) { this.ultimoAcesso = ultimoAcesso; }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_CLIENTE"));
+    }
+
+    @Override
+    public String getPassword() {
+        return senhaHash;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return ativo != null ? ativo : true;
+    }
 
     public static PessoaBuilder builder() {
         return new PessoaBuilder();
@@ -96,6 +168,10 @@ public class Pessoa extends BaseEntity {
         private Boolean recebeNf = false;
         private Boolean recebeContrato = false;
         private Boolean ativo = true;
+        private String senhaHash;
+        private Boolean podeAbrirTicket = false;
+        private Boolean emailVerificado = false;
+        private java.time.LocalDateTime ultimoAcesso;
         // BaseEntity fields if needed for builder? Usually not for creation mostly.
         // But if needed, we can add them. For now, matching standard use.
 
@@ -110,6 +186,10 @@ public class Pessoa extends BaseEntity {
         public PessoaBuilder recebeNf(Boolean recebeNf) { this.recebeNf = recebeNf; return this; }
         public PessoaBuilder recebeContrato(Boolean recebeContrato) { this.recebeContrato = recebeContrato; return this; }
         public PessoaBuilder ativo(Boolean ativo) { this.ativo = ativo; return this; }
+        public PessoaBuilder senhaHash(String senhaHash) { this.senhaHash = senhaHash; return this; }
+        public PessoaBuilder podeAbrirTicket(Boolean podeAbrirTicket) { this.podeAbrirTicket = podeAbrirTicket; return this; }
+        public PessoaBuilder emailVerificado(Boolean emailVerificado) { this.emailVerificado = emailVerificado; return this; }
+        public PessoaBuilder ultimoAcesso(java.time.LocalDateTime ultimoAcesso) { this.ultimoAcesso = ultimoAcesso; return this; }
 
         public Pessoa build() {
             Pessoa pessoa = new Pessoa();
@@ -124,6 +204,10 @@ public class Pessoa extends BaseEntity {
             pessoa.setRecebeNf(recebeNf);
             pessoa.setRecebeContrato(recebeContrato);
             pessoa.setAtivo(ativo);
+            pessoa.setSenhaHash(senhaHash);
+            pessoa.setPodeAbrirTicket(podeAbrirTicket);
+            pessoa.setEmailVerificado(emailVerificado);
+            pessoa.setUltimoAcesso(ultimoAcesso);
             return pessoa;
         }
     }

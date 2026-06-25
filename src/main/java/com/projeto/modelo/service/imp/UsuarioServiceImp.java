@@ -58,6 +58,25 @@ public class UsuarioServiceImp implements UsuarioService {
                 .build();
     }
 
+    @Override
+    public AuthenticatedResposeDTO retornoAutenticacaoCliente(com.projeto.modelo.model.entity.Pessoa pessoa, String jwt) {
+        UsuarioResposeDTO responseDTO = UsuarioResposeDTO.builder()
+                .id(pessoa.getId())
+                .nome(pessoa.getNome())
+                .email(pessoa.getEmail())
+                .permissao("CLIENTE")
+                .telefone(pessoa.getTelefone())
+                .cargo(pessoa.getCargo())
+                .status(pessoa.getAtivo() != null && pessoa.getAtivo() ? "ATIVO" : "INATIVO")
+                .cpf(pessoa.getCpf())
+                .build();
+
+        return AuthenticatedResposeDTO.builder()
+                .usuarioRespose(responseDTO)
+                .token(jwt)
+                .build();
+    }
+
     @Transactional(readOnly = true)
     @Override
     public Usuario buscarPorEmail(String email) {

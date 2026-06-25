@@ -16,6 +16,9 @@ public interface UsuarioService {
     @Transactional(readOnly = true)
     AuthenticatedResposeDTO retornoAutenticacao(String email, String jwt);
 
+    AuthenticatedResposeDTO retornoAutenticacaoCliente(com.projeto.modelo.model.entity.Pessoa pessoa, String jwt);
+
+
     @Transactional(readOnly = true)
     Usuario buscarPorEmail(String email);
 

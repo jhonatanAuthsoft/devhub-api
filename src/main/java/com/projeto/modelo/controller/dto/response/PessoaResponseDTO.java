@@ -28,6 +28,7 @@ public class PessoaResponseDTO {
     private Boolean recebeNf;
     private Boolean recebeContrato;
     private Boolean ativo;
+    private Boolean podeAbrirTicket;
     
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;
@@ -56,6 +57,8 @@ public class PessoaResponseDTO {
     public void setRecebeContrato(Boolean recebeContrato) { this.recebeContrato = recebeContrato; }
     public Boolean getAtivo() { return ativo; }
     public void setAtivo(Boolean ativo) { this.ativo = ativo; }
+    public Boolean getPodeAbrirTicket() { return podeAbrirTicket; }
+    public void setPodeAbrirTicket(Boolean podeAbrirTicket) { this.podeAbrirTicket = podeAbrirTicket; }
     public LocalDateTime getDataCriacao() { return dataCriacao; }
     public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
     public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
@@ -78,6 +81,7 @@ public class PessoaResponseDTO {
         private Boolean recebeNf;
         private Boolean recebeContrato;
         private Boolean ativo;
+        private Boolean podeAbrirTicket;
         private LocalDateTime dataCriacao;
         private LocalDateTime dataAtualizacao;
 
@@ -93,6 +97,7 @@ public class PessoaResponseDTO {
         public PessoaResponseDTOBuilder recebeNf(Boolean recebeNf) { this.recebeNf = recebeNf; return this; }
         public PessoaResponseDTOBuilder recebeContrato(Boolean recebeContrato) { this.recebeContrato = recebeContrato; return this; }
         public PessoaResponseDTOBuilder ativo(Boolean ativo) { this.ativo = ativo; return this; }
+        public PessoaResponseDTOBuilder podeAbrirTicket(Boolean podeAbrirTicket) { this.podeAbrirTicket = podeAbrirTicket; return this; }
         public PessoaResponseDTOBuilder dataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; return this; }
         public PessoaResponseDTOBuilder dataAtualizacao(LocalDateTime dataAtualizacao) { this.dataAtualizacao = dataAtualizacao; return this; }
 
@@ -110,6 +115,7 @@ public class PessoaResponseDTO {
             dto.setRecebeNf(recebeNf);
             dto.setRecebeContrato(recebeContrato);
             dto.setAtivo(ativo);
+            dto.setPodeAbrirTicket(podeAbrirTicket);
             dto.setDataCriacao(dataCriacao);
             dto.setDataAtualizacao(dataAtualizacao);
             return dto;

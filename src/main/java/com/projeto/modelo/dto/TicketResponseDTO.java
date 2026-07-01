@@ -20,6 +20,7 @@ public class TicketResponseDTO {
     private String nomeProjeto;
     private UUID abertoPorId;
     private TipoAutor abertoPorTipo;
+    private String nomeAbertura;
     private StatusTicket statusAtual;
     private PrioridadeTicket prioridade;
     private UUID responsavelAtualId;

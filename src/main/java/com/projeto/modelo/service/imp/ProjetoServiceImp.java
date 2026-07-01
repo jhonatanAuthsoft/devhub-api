@@ -305,12 +305,30 @@ public class ProjetoServiceImp implements ProjetoService {
 
     @Override
     public Page<ProjetoResponseDTO> listarProjetos(String search, java.util.List<com.projeto.modelo.model.enums.StatusProjeto> statuses, Pageable pageable) {
-        if ((search != null && !search.trim().isEmpty()) || (statuses != null && !statuses.isEmpty())) {
-            String searchTerm = (search != null && !search.trim().isEmpty()) ? search : "";
-            List<com.projeto.modelo.model.enums.StatusProjeto> statusList = (statuses != null && !statuses.isEmpty()) ? statuses : null;
-            return projetoRepository.buscarPorTermoEStatus(searchTerm, statusList, pageable).map(this::mapToDTO);
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        UUID clienteId = null;
+        if (auth != null && auth.getPrincipal() instanceof Pessoa) {
+            Pessoa pessoa = (Pessoa) auth.getPrincipal();
+            if (pessoa.getCliente() != null) {
+                clienteId = pessoa.getCliente().getId();
+            }
         }
-        return projetoRepository.findAll(pageable).map(this::mapToDTO);
+
+        String searchTerm = (search != null && !search.trim().isEmpty()) ? search : "";
+        List<com.projeto.modelo.model.enums.StatusProjeto> statusList = (statuses != null && !statuses.isEmpty()) ? statuses : null;
+        boolean hasFilters = !searchTerm.isEmpty() || statusList != null;
+
+        if (clienteId != null) {
+            if (hasFilters) {
+                return projetoRepository.buscarPorTermoEStatusECliente(searchTerm, statusList, clienteId, pageable).map(this::mapToDTO);
+            }
+            return projetoRepository.findByClienteId(clienteId, pageable).map(this::mapToDTO);
+        } else {
+            if (hasFilters) {
+                return projetoRepository.buscarPorTermoEStatus(searchTerm, statusList, pageable).map(this::mapToDTO);
+            }
+            return projetoRepository.findAll(pageable).map(this::mapToDTO);
+        }
     }
 
     @Override

@@ -6,6 +6,7 @@ public enum StatusTicket {
     BLOQUEADO,
     EM_TESTE_INTERNO,
     EM_TESTE_CLIENTE,
+    REPROVADO,
     APROVADO_CLIENTE,
     FINALIZADO
 }

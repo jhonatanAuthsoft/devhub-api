@@ -58,7 +58,9 @@ public class TicketController {
         ticket.setProjeto(projeto);
 
         Ticket salvo = ticketService.criarTicket(ticket, extrairAutorId(userDetails), extrairTipoAutor(userDetails));
-        return ResponseEntity.status(HttpStatus.CREATED).body(TicketResponseDTO.fromEntity(salvo));
+        TicketResponseDTO responseDto = TicketResponseDTO.fromEntity(salvo);
+        responseDto.setNomeAbertura(ticketService.getNomeAutor(salvo.getAbertoPorId(), salvo.getAbertoPorTipo()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @GetMapping
@@ -73,7 +75,11 @@ public class TicketController {
         );
 
         List<TicketResponseDTO> dtos = tickets.stream()
-                .map(TicketResponseDTO::fromEntity)
+                .map(ticket -> {
+                    TicketResponseDTO dto = TicketResponseDTO.fromEntity(ticket);
+                    dto.setNomeAbertura(ticketService.getNomeAutor(ticket.getAbertoPorId(), ticket.getAbertoPorTipo()));
+                    return dto;
+                })
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(dtos);
@@ -90,7 +96,10 @@ public class TicketController {
                 extrairTipoAutor(userDetails)
         );
 
-        return ResponseEntity.ok(TicketResponseDTO.fromEntity(ticket));
+        TicketResponseDTO dto = TicketResponseDTO.fromEntity(ticket);
+        dto.setNomeAbertura(ticketService.getNomeAutor(ticket.getAbertoPorId(), ticket.getAbertoPorTipo()));
+
+        return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/{id}/status")
@@ -108,7 +117,10 @@ public class TicketController {
                 dto.getDirecionadoParaId()
         );
 
-        return ResponseEntity.ok(TicketResponseDTO.fromEntity(ticket));
+        TicketResponseDTO responseDto = TicketResponseDTO.fromEntity(ticket);
+        responseDto.setNomeAbertura(ticketService.getNomeAutor(ticket.getAbertoPorId(), ticket.getAbertoPorTipo()));
+
+        return ResponseEntity.ok(responseDto);
     }
 
     @GetMapping("/{id}/historico")

@@ -22,6 +22,9 @@ public class S3Config {
     @Value("${aws.secretKey:}")
     private String secretKey;
 
+    @Value("${aws.s3.endpoint:}")
+    private String endpoint;
+
     @Bean
     public S3Client s3Client() {
         S3ClientBuilder builder = S3Client.builder()
@@ -31,6 +34,11 @@ public class S3Config {
             builder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)));
         } else {
             builder.credentialsProvider(DefaultCredentialsProvider.create());
+        }
+
+        if (endpoint != null && !endpoint.trim().isEmpty()) {
+            builder.endpointOverride(java.net.URI.create(endpoint));
+            builder.forcePathStyle(true);
         }
 
         return builder.build();

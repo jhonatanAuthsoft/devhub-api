@@ -77,18 +77,18 @@ public class TicketService {
         StatusTicket statusAnterior = ticket.getStatusAtual();
 
         if (autorTipo == TipoAutor.CONTATO_CLIENTE) {
-            if (statusAnterior != StatusTicket.EM_TESTE_CLIENTE || novoStatus != StatusTicket.APROVADO_CLIENTE) {
-                throw new TransicaoNaoPermitidaException("Contato do cliente só pode alterar o status de 'Em Teste Cliente' para 'Aprovado Cliente'.");
+            if (statusAnterior != StatusTicket.EM_TESTE_CLIENTE || (novoStatus != StatusTicket.APROVADO_CLIENTE && novoStatus != StatusTicket.REPROVADO)) {
+                throw new TransicaoNaoPermitidaException("Contato do cliente só pode alterar o status de 'Em Teste Cliente' para 'Aprovado Cliente' ou 'Reprovado'.");
             }
         }
 
         Usuario direcionadoPara = null;
-        if (novoStatus == StatusTicket.BLOQUEADO) {
+        if (novoStatus == StatusTicket.BLOQUEADO || novoStatus == StatusTicket.REPROVADO) {
             if (observacao == null || observacao.trim().isEmpty()) {
-                throw new IllegalArgumentException("Observação é obrigatória ao bloquear um ticket.");
+                throw new IllegalArgumentException("Observação é obrigatória ao mudar para " + novoStatus.name());
             }
             if (direcionadoParaId == null) {
-                throw new IllegalArgumentException("Usuário de direcionamento é obrigatório ao bloquear um ticket.");
+                throw new IllegalArgumentException("Usuário de direcionamento é obrigatório ao mudar para " + novoStatus.name());
             }
             direcionadoPara = usuarioRepository.findById(direcionadoParaId)
                     .orElseThrow(() -> new IllegalArgumentException("Usuário de direcionamento não encontrado."));

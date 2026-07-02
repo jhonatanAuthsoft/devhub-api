@@ -1,5 +1,6 @@
 package com.projeto.modelo.model.entity;
 
+import com.projeto.modelo.model.PlanoContinuidade;
 import com.projeto.modelo.model.Servidor;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,8 +32,18 @@ public class Assinatura {
     private Cliente cliente;
 
     @ManyToOne
-    @JoinColumn(name = "servidor_id", nullable = false)
+    @JoinColumn(name = "servidor_id", nullable = true)
     private Servidor servidor;
+
+    @ManyToOne
+    @JoinColumn(name = "plano_continuidade_id", nullable = true)
+    private PlanoContinuidade planoContinuidade;
+
+    @Column(name = "projeto_id")
+    private UUID projetoId;
+
+    @Column(name = "identificador_servidor")
+    private String identificadorServidor;
 
     @Column(name = "data_inicio", nullable = false)
     private LocalDate dataInicio;

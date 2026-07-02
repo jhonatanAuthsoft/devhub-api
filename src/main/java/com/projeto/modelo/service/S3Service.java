@@ -26,6 +26,9 @@ public class S3Service {
     @Value("${aws.s3.region:us-east-1}")
     private String region;
 
+    @Value("${aws.s3.public-endpoint:}")
+    private String publicEndpoint;
+
     public String uploadArquivo(MultipartFile arquivo, String path) {
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
@@ -36,10 +39,17 @@ public class S3Service {
 
             s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(arquivo.getInputStream(), arquivo.getSize()));
 
-            return s3Client.utilities().getUrl(GetUrlRequest.builder()
+            String originalUrl = s3Client.utilities().getUrl(GetUrlRequest.builder()
                     .bucket(bucket)
                     .key(path)
                     .build()).toExternalForm();
+
+            // Override URL se houver um public endpoint configurado (útil para MinIO local)
+            if (publicEndpoint != null && !publicEndpoint.trim().isEmpty()) {
+                return publicEndpoint + "/" + bucket + "/" + path;
+            }
+
+            return originalUrl;
         } catch (IOException e) {
             log.error("Erro ao fazer upload do arquivo para S3", e);
             throw new RuntimeException("Falha ao enviar arquivo para armazenamento.", e);

@@ -19,6 +19,16 @@ public interface ProjetoRepository extends JpaRepository<Projeto, UUID> {
            "(LOWER(p.titulo) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(p.cliente.nome) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Projeto> buscarPorTermoEStatus(@Param("search") String search, @Param("statuses") List<com.projeto.modelo.model.enums.StatusProjeto> statuses, Pageable pageable);
+    
+    @Query("SELECT p FROM Projeto p WHERE " +
+           "p.cliente.id = :clienteId AND " +
+           "(:statuses IS NULL OR p.status IN :statuses) AND " +
+           "(LOWER(p.titulo) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(p.cliente.nome) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Projeto> buscarPorTermoEStatusECliente(@Param("search") String search, @Param("statuses") List<com.projeto.modelo.model.enums.StatusProjeto> statuses, @Param("clienteId") UUID clienteId, Pageable pageable);
+    
+    Page<Projeto> findByClienteId(UUID clienteId, Pageable pageable);
+
     List<Projeto> findDistinctByEquipeColaboradorId(UUID colaboradorId);
     List<Projeto> findByTipoProjetoIn(List<com.projeto.modelo.model.enums.TipoProjeto> tipos);
     List<Projeto> findByProjetoOrigemIdAndTipoProjeto(UUID projetoOrigemId, com.projeto.modelo.model.enums.TipoProjeto tipoProjeto);

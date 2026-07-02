@@ -18,8 +18,10 @@ public class AssinaturaRequest {
     @NotNull(message = "Cliente é obrigatório")
     private UUID clienteId;
 
-    @NotNull(message = "Servidor é obrigatório")
     private UUID servidorId;
+    private UUID planoContinuidadeId;
+
+    private String identificadorServidor;
 
     @NotNull(message = "Data de início é obrigatória")
     private LocalDate dataInicio;

@@ -1,6 +1,7 @@
 package com.projeto.modelo.dto;
 
 import com.projeto.modelo.controller.dto.response.ClienteResponseDTO;
+import com.projeto.modelo.model.PlanoContinuidade;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,9 @@ public class AssinaturaResponse {
     private UUID id;
     private ClienteResponseDTO cliente; // Reusing existing ClienteResponseDTO if available, or simplified version
     private ServidorResponse servidor;
+    private PlanoContinuidade planoContinuidade;
+    private UUID projetoId;
+    private String identificadorServidor;
     private LocalDate dataInicio;
     private LocalDate dataFim;
     private String tipoPlano;

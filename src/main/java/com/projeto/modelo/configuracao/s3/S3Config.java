@@ -9,6 +9,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 @Configuration
 public class S3Config {
@@ -39,6 +40,24 @@ public class S3Config {
         if (endpoint != null && !endpoint.trim().isEmpty()) {
             builder.endpointOverride(java.net.URI.create(endpoint));
             builder.forcePathStyle(true);
+        }
+
+        return builder.build();
+    }
+    
+    @Bean
+    public S3Presigner s3Presigner() {
+        S3Presigner.Builder builder = S3Presigner.builder()
+                .region(Region.of(region));
+
+        if (accessKey != null && !accessKey.trim().isEmpty() && secretKey != null && !secretKey.trim().isEmpty()) {
+            builder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)));
+        } else {
+            builder.credentialsProvider(DefaultCredentialsProvider.create());
+        }
+
+        if (endpoint != null && !endpoint.trim().isEmpty()) {
+            builder.endpointOverride(java.net.URI.create(endpoint));
         }
 
         return builder.build();

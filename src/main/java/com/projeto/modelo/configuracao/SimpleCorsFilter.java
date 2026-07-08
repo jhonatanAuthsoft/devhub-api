@@ -15,9 +15,9 @@ public class SimpleCorsFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
-        System.out.println("SimpleCorsFilter: Intercepting request");
-        HttpServletResponse response = (HttpServletResponse) res;
         HttpServletRequest request = (HttpServletRequest) req;
+        System.out.println("SimpleCorsFilter: Intercepting request to " + request.getRequestURI());
+        HttpServletResponse response = (HttpServletResponse) res;
         
         // Permite explicitamente a origem do frontend
         response.setHeader("Access-Control-Allow-Origin", "http://localhost:3002");

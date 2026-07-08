@@ -123,10 +123,15 @@ public class TicketAnexoController {
     }
 
     private TicketAnexoDTO toDTO(TicketAnexo anexo) {
+        String urlAcesso = anexo.getUrlArquivo();
+        if (urlAcesso != null && !urlAcesso.isEmpty()) {
+            urlAcesso = s3Service.gerarUrlAssinada(urlAcesso);
+        }
+
         return TicketAnexoDTO.builder()
                 .id(anexo.getId())
                 .tipo(anexo.getTipo())
-                .urlArquivo(anexo.getUrlArquivo())
+                .urlArquivo(urlAcesso)
                 .nomeArquivo(anexo.getNomeArquivo())
                 .tamanhoBytes(anexo.getTamanhoBytes())
                 .dataEnvio(anexo.getDataEnvio())

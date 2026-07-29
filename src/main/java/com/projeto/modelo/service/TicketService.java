@@ -82,7 +82,6 @@ public class TicketService {
             }
         }
 
-        Usuario direcionadoPara = null;
         if (novoStatus == StatusTicket.BLOQUEADO || novoStatus == StatusTicket.REPROVADO) {
             if (observacao == null || observacao.trim().isEmpty()) {
                 throw new IllegalArgumentException("Observação é obrigatória ao mudar para " + novoStatus.name());
@@ -90,10 +89,12 @@ public class TicketService {
             if (direcionadoParaId == null) {
                 throw new IllegalArgumentException("Usuário de direcionamento é obrigatório ao mudar para " + novoStatus.name());
             }
-            direcionadoPara = usuarioRepository.findById(direcionadoParaId)
-                    .orElseThrow(() -> new IllegalArgumentException("Usuário de direcionamento não encontrado."));
-            
-            ticket.setResponsavelAtual(direcionadoPara);
+            boolean existeUsuario = usuarioRepository.existsById(direcionadoParaId);
+            boolean existePessoa = pessoaRepository.existsById(direcionadoParaId);
+            if (!existeUsuario && !existePessoa) {
+                throw new IllegalArgumentException("Usuário de direcionamento não encontrado.");
+            }
+            ticket.setResponsavelAtualId(direcionadoParaId);
         }
 
         ticket.setStatusAtual(novoStatus);
@@ -106,7 +107,7 @@ public class TicketService {
                 .alteradoPorId(autorId)
                 .alteradoPorTipo(autorTipo)
                 .observacao(observacao)
-                .direcionadoPara(direcionadoPara)
+                .direcionadoParaId(direcionadoParaId)
                 .build();
         historicoRepository.save(historico);
 
@@ -197,5 +198,23 @@ public class TicketService {
         } else {
             return pessoaRepository.findById(autorId).map(Pessoa::getNome).orElse("Contato Desconhecido");
         }
+    }
+
+    public String getNomeUsuarioOuPessoa(UUID id) {
+        if (id == null) return null;
+        return usuarioRepository.findById(id)
+                .map(Usuario::getNome)
+                .orElseGet(() -> pessoaRepository.findById(id)
+                        .map(Pessoa::getNome)
+                        .orElse("Desconhecido"));
+    }
+
+    public String getEmailUsuarioOuPessoa(UUID id) {
+        if (id == null) return null;
+        return usuarioRepository.findById(id)
+                .map(Usuario::getEmail)
+                .orElseGet(() -> pessoaRepository.findById(id)
+                        .map(Pessoa::getEmail)
+                        .orElse(null));
     }
 }

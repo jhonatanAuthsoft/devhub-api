@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class NotificacaoTicketService {
@@ -121,22 +122,31 @@ public class NotificacaoTicketService {
                 }
             }
 
-            // Se statusNovo==BLOQUEADO, buscar o TicketHistoricoStatus mais recente com direcionado_para_id não nulo
-            if (statusNovo == StatusTicket.BLOQUEADO && ticket.getHistoricoStatus() != null && !ticket.getHistoricoStatus().isEmpty()) {
+            // Se statusNovo==BLOQUEADO ou REPROVADO, buscar o TicketHistoricoStatus mais recente com direcionado_para_id não nulo
+            if ((statusNovo == StatusTicket.BLOQUEADO || statusNovo == StatusTicket.REPROVADO) && ticket.getHistoricoStatus() != null && !ticket.getHistoricoStatus().isEmpty()) {
                 TicketHistoricoStatus historicoMaisRecente = ticket.getHistoricoStatus().stream()
-                        .filter(h -> h.getDirecionadoPara() != null)
+                        .filter(h -> h.getDirecionadoParaId() != null)
                         .max(Comparator.comparing(TicketHistoricoStatus::getDataAlteracao))
                         .orElse(null);
 
                 if (historicoMaisRecente != null) {
-                    String htmlBloqueado = TemplateUtils.htmlToString(TICKET_BLOQUEADO_TEMPLATE)
-                            .replace("#tituloTicket#", tituloTicket)
-                            .replace("#nomeProjeto#", nomeProjeto)
-                            .replace("#motivoBloqueio#", historicoMaisRecente.getObservacao() != null ? historicoMaisRecente.getObservacao() : "Sem observação")
-                            .replace("#nomeResponsavel#", historicoMaisRecente.getDirecionadoPara().getNome())
-                            .replace("#linkTicket#", linkTicket);
+                    UUID dirId = historicoMaisRecente.getDirecionadoParaId();
+                    String nomeDir = usuarioRepository.findById(dirId).map(Usuario::getNome)
+                            .orElseGet(() -> pessoaRepository.findById(dirId).map(Pessoa::getNome).orElse("Responsável"));
+                    String emailDir = usuarioRepository.findById(dirId).map(Usuario::getEmail)
+                            .orElseGet(() -> pessoaRepository.findById(dirId).map(Pessoa::getEmail).orElse(null));
 
-                    emailService.enviarEmailHtml(historicoMaisRecente.getDirecionadoPara().getEmail(), htmlBloqueado, "DevHub - Atenção: Ticket Bloqueado");
+                    if (emailDir != null && !emailDir.isEmpty()) {
+                        String htmlBloqueado = TemplateUtils.htmlToString(TICKET_BLOQUEADO_TEMPLATE)
+                                .replace("#tituloTicket#", tituloTicket)
+                                .replace("#nomeProjeto#", nomeProjeto)
+                                .replace("#motivoBloqueio#", historicoMaisRecente.getObservacao() != null ? historicoMaisRecente.getObservacao() : "Sem observação")
+                                .replace("#nomeResponsavel#", nomeDir)
+                                .replace("#linkTicket#", linkTicket);
+
+                        String assuntoStatus = statusNovo == StatusTicket.REPROVADO ? "DevHub - Atenção: Ticket Reprovado" : "DevHub - Atenção: Ticket Bloqueado";
+                        emailService.enviarEmailHtml(emailDir, htmlBloqueado, assuntoStatus);
+                    }
                 }
             }
 

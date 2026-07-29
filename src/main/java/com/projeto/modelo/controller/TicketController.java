@@ -78,6 +78,7 @@ public class TicketController {
                 .map(ticket -> {
                     TicketResponseDTO dto = TicketResponseDTO.fromEntity(ticket);
                     dto.setNomeAbertura(ticketService.getNomeAutor(ticket.getAbertoPorId(), ticket.getAbertoPorTipo()));
+                    dto.setNomeResponsavelAtual(ticketService.getNomeUsuarioOuPessoa(ticket.getResponsavelAtualId()));
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -98,6 +99,7 @@ public class TicketController {
 
         TicketResponseDTO dto = TicketResponseDTO.fromEntity(ticket);
         dto.setNomeAbertura(ticketService.getNomeAutor(ticket.getAbertoPorId(), ticket.getAbertoPorTipo()));
+        dto.setNomeResponsavelAtual(ticketService.getNomeUsuarioOuPessoa(ticket.getResponsavelAtualId()));
 
         return ResponseEntity.ok(dto);
     }
@@ -119,6 +121,7 @@ public class TicketController {
 
         TicketResponseDTO responseDto = TicketResponseDTO.fromEntity(ticket);
         responseDto.setNomeAbertura(ticketService.getNomeAutor(ticket.getAbertoPorId(), ticket.getAbertoPorTipo()));
+        responseDto.setNomeResponsavelAtual(ticketService.getNomeUsuarioOuPessoa(ticket.getResponsavelAtualId()));
 
         return ResponseEntity.ok(responseDto);
     }
@@ -136,6 +139,7 @@ public class TicketController {
                 .map(h -> {
                     TicketHistoricoStatusResponseDTO dto = TicketHistoricoStatusResponseDTO.fromEntity(h);
                     dto.setNomeAlteradoPor(ticketService.getNomeAutor(h.getAlteradoPorId(), h.getAlteradoPorTipo()));
+                    dto.setNomeDirecionadoPara(ticketService.getNomeUsuarioOuPessoa(h.getDirecionadoParaId()));
                     return dto;
                 })
                 .collect(Collectors.toList());

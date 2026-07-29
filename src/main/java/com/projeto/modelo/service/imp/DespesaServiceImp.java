@@ -298,9 +298,12 @@ public class DespesaServiceImp implements DespesaService {
         
         String dadosAntigos = "Desc=" + despesa.getDescricao() + ", Vlr=" + despesa.getValorPrevisto();
         
+        LocalDate dataAntiga = despesa.getDataVencimento();
+        LocalDate novaData = cartaoCredito != null ? calcularVencimentoCartao(dto.getDataVencimento(), cartaoCredito) : dto.getDataVencimento();
+        
         despesa.setDescricao(dto.getDescricao());
         despesa.setValorPrevisto(dto.getValorPrevisto());
-        despesa.setDataVencimento(cartaoCredito != null ? calcularVencimentoCartao(dto.getDataVencimento(), cartaoCredito) : dto.getDataVencimento());
+        despesa.setDataVencimento(novaData);
         despesa.setCategoria(categoria);
         despesa.setConta(contaBancaria);
         despesa.setCartaoCredito(cartaoCredito);
@@ -308,11 +311,47 @@ public class DespesaServiceImp implements DespesaService {
         
         String dadosNovos = "Desc=" + dto.getDescricao() + ", Vlr=" + dto.getValorPrevisto();
         
-        despesa = repository.save(despesa);
+        Despesa despesaSalva = repository.save(despesa);
+        List<Despesa> atualizadas = new ArrayList<>();
+        atualizadas.add(despesaSalva);
         
-        auditLogService.registrarLog("Despesa", despesa.getId(), AcaoAuditLog.EDITOU, usuarioLogado, dadosAntigos, dadosNovos, null);
+        auditLogService.registrarLog("Despesa", despesaSalva.getId(), AcaoAuditLog.EDITOU, usuarioLogado, dadosAntigos, dadosNovos, null);
         
-        return List.of(DespesaResponseDTO.fromEntity(despesa));
+        // Propagar para futuras se ESTA_E_PROXIMAS
+        if ("ESTA_E_PROXIMAS".equals(dto.getEscopoEdicao()) && despesaSalva.getRecorrenciaPai() != null) {
+            List<Despesa> irmas = repository.findByRecorrenciaPaiId(despesaSalva.getRecorrenciaPai().getId());
+            
+            final UUID currentId = despesaSalva.getId();
+            // Filtra as que são >= que a data original da despesa atual (excluindo a própria)
+            List<Despesa> futuras = irmas.stream()
+                .filter(d -> !d.getId().equals(currentId))
+                .filter(d -> d.getExcluidoEm() == null)
+                .filter(d -> !d.getDataVencimento().isBefore(dataAntiga))
+                .sorted((d1, d2) -> d1.getDataVencimento().compareTo(d2.getDataVencimento()))
+                .collect(Collectors.toList());
+                
+            LocalDate vctoBase = novaData;
+            for (Despesa futura : futuras) {
+                vctoBase = proximoVencimento(vctoBase, futura.getPeriodicidade() != null ? futura.getPeriodicidade() : despesa.getPeriodicidade());
+                
+                String dadosAntigosF = "Desc=" + futura.getDescricao() + ", Vlr=" + futura.getValorPrevisto();
+                
+                futura.setValorPrevisto(dto.getValorPrevisto());
+                futura.setDataVencimento(vctoBase);
+                futura.setCategoria(categoria);
+                futura.setConta(contaBancaria);
+                futura.setCartaoCredito(cartaoCredito);
+                futura.setAtualizadoPor(usuarioLogado);
+                
+                String dadosNovosF = "Desc=" + futura.getDescricao() + ", Vlr=" + futura.getValorPrevisto();
+                futura = repository.save(futura);
+                atualizadas.add(futura);
+                
+                auditLogService.registrarLog("Despesa", futura.getId(), AcaoAuditLog.EDITOU, usuarioLogado, dadosAntigosF, dadosNovosF, "Alteração em lote (ESTA_E_PROXIMAS)");
+            }
+        }
+        
+        return atualizadas.stream().map(DespesaResponseDTO::fromEntity).collect(Collectors.toList());
     }
 
     @Override

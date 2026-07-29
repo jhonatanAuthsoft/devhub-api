@@ -35,8 +35,8 @@ public class TicketHistoricoStatusResponseDTO {
                 // .nomeAlteradoPor will be set by the service using Pessoa/Usuario repository
                 .dataAlteracao(historico.getDataAlteracao())
                 .observacao(historico.getObservacao())
-                .direcionadoParaId(historico.getDirecionadoPara() != null ? historico.getDirecionadoPara().getId() : null)
-                .nomeDirecionadoPara(historico.getDirecionadoPara() != null ? historico.getDirecionadoPara().getNome() : null)
+                .direcionadoParaId(historico.getDirecionadoParaId())
+                .nomeDirecionadoPara(null)
                 .build();
     }
 }

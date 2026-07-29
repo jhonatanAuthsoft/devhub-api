@@ -46,9 +46,8 @@ public class Ticket {
     @Column(nullable = false)
     private PrioridadeTicket prioridade;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "responsavel_atual_id")
-    private Usuario responsavelAtual;
+    @Column(name = "responsavel_atual_id")
+    private UUID responsavelAtualId;
 
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;

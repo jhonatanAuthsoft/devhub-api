@@ -39,8 +39,8 @@ public class TicketResponseDTO {
                 .abertoPorTipo(ticket.getAbertoPorTipo())
                 .statusAtual(ticket.getStatusAtual())
                 .prioridade(ticket.getPrioridade())
-                .responsavelAtualId(ticket.getResponsavelAtual() != null ? ticket.getResponsavelAtual().getId() : null)
-                .nomeResponsavelAtual(ticket.getResponsavelAtual() != null ? ticket.getResponsavelAtual().getNome() : null)
+                .responsavelAtualId(ticket.getResponsavelAtualId())
+                .nomeResponsavelAtual(null)
                 .criadoEm(ticket.getCriadoEm())
                 .atualizadoEm(ticket.getAtualizadoEm())
                 .build();

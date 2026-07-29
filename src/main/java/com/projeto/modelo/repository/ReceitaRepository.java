@@ -13,4 +13,5 @@ import java.time.LocalDate;
 public interface ReceitaRepository extends JpaRepository<Receita, UUID> {
     List<Receita> findByRecorrenciaPaiId(UUID paiId);
     List<Receita> findByStatusAndDataVencimentoBefore(StatusReceita status, LocalDate data);
+    List<Receita> findByDataVencimentoBetween(LocalDate dataInicio, LocalDate dataFim);
 }

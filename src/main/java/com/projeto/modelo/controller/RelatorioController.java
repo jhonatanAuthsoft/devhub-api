@@ -60,4 +60,16 @@ public class RelatorioController {
         
         return ResponseEntity.ok(relatorioService.gerarRelatorioAvancado(filtro));
     }
+
+    @Autowired
+    private com.projeto.modelo.service.BoardAnaliticoService boardAnaliticoService;
+
+    @GetMapping("/board-analitico/tipo-servico")
+    public ResponseEntity<com.projeto.modelo.dto.relatorio.BoardTipoServicoDTO> getBoardTipoServico(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer ano,
+            @org.springframework.web.bind.annotation.RequestParam(required = false, defaultValue = "false") Boolean somenteRecebidos) {
+        
+        int anoFinal = ano != null ? ano : java.time.LocalDate.now().getYear();
+        return ResponseEntity.ok(boardAnaliticoService.gerarBoardPorTipoServico(anoFinal, somenteRecebidos));
+    }
 }

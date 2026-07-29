@@ -1,0 +1,4 @@
+ALTER TABLE ticket DROP CONSTRAINT ticket_status_atual_check;
+
+ALTER TABLE ticket ADD CONSTRAINT ticket_status_atual_check 
+    CHECK (status_atual IN ('ABERTO', 'EM_ANDAMENTO', 'BLOQUEADO', 'EM_TESTE_INTERNO', 'EM_TESTE_CLIENTE', 'REPROVADO', 'APROVADO_CLIENTE', 'FINALIZADO'));

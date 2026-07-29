@@ -45,9 +45,8 @@ public class TicketHistoricoStatus {
     @Column(columnDefinition = "TEXT")
     private String observacao;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "direcionado_para_id")
-    private Usuario direcionadoPara;
+    @Column(name = "direcionado_para_id")
+    private UUID direcionadoParaId;
 
     @PrePersist
     public void prePersist() {

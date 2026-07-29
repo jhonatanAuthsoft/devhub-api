@@ -161,13 +161,13 @@ public class TicketServiceTest {
     @Test
     void alterarStatus_ParaBloqueadoValido_DeveAtualizarResponsavel() {
         when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
-        when(usuarioRepository.findById(tecnicoId)).thenReturn(Optional.of(tecnico));
+        when(usuarioRepository.existsById(tecnicoId)).thenReturn(true);
         when(ticketRepository.save(any(Ticket.class))).thenAnswer(i -> i.getArguments()[0]);
 
         Ticket atualizado = ticketService.alterarStatus(ticketId, StatusTicket.BLOQUEADO, tecnicoId, TipoAutor.EQUIPE_TECNICA, "Motivo bloqueio", tecnicoId);
 
         assertEquals(StatusTicket.BLOQUEADO, atualizado.getStatusAtual());
-        assertEquals(tecnico, atualizado.getResponsavelAtual());
+        assertEquals(tecnicoId, atualizado.getResponsavelAtualId());
         verify(historicoRepository, times(1)).save(any(TicketHistoricoStatus.class));
     }
 

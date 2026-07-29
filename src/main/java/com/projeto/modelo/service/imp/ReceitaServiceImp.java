@@ -242,20 +242,56 @@ public class ReceitaServiceImp implements ReceitaService {
         
         String dadosAntigos = "Desc=" + receita.getDescricao() + ", Vlr=" + receita.getValorPrevisto();
         
+        LocalDate dataAntiga = receita.getDataVencimento();
+        LocalDate novaData = dto.getDataVencimento();
+        
         receita.setDescricao(dto.getDescricao());
         receita.setValorPrevisto(dto.getValorPrevisto());
-        receita.setDataVencimento(dto.getDataVencimento());
+        receita.setDataVencimento(novaData);
         receita.setCategoria(categoria);
         receita.setConta(contaBancaria);
         receita.setAtualizadoPor(usuarioLogado);
         
         String dadosNovos = "Desc=" + dto.getDescricao() + ", Vlr=" + dto.getValorPrevisto();
         
-        receita = repository.save(receita);
+        Receita receitaSalva = repository.save(receita);
+        List<Receita> atualizadas = new ArrayList<>();
+        atualizadas.add(receitaSalva);
         
-        auditLogService.registrarLog("Receita", receita.getId(), AcaoAuditLog.EDITOU, usuarioLogado, dadosAntigos, dadosNovos, null);
+        auditLogService.registrarLog("Receita", receitaSalva.getId(), AcaoAuditLog.EDITOU, usuarioLogado, dadosAntigos, dadosNovos, null);
         
-        return List.of(ReceitaResponseDTO.fromEntity(receita));
+        if ("ESTA_E_PROXIMAS".equals(dto.getEscopoEdicao()) && receitaSalva.getRecorrenciaPai() != null) {
+            List<Receita> irmas = repository.findByRecorrenciaPaiId(receitaSalva.getRecorrenciaPai().getId());
+            
+            final UUID currentId = receitaSalva.getId();
+            List<Receita> futuras = irmas.stream()
+                .filter(r -> !r.getId().equals(currentId))
+                .filter(r -> r.getExcluidoEm() == null)
+                .filter(r -> !r.getDataVencimento().isBefore(dataAntiga))
+                .sorted((r1, r2) -> r1.getDataVencimento().compareTo(r2.getDataVencimento()))
+                .collect(Collectors.toList());
+                
+            LocalDate vctoBase = novaData;
+            for (Receita futura : futuras) {
+                vctoBase = proximoVencimento(vctoBase, futura.getPeriodicidade() != null ? futura.getPeriodicidade() : receita.getPeriodicidade());
+                
+                String dadosAntigosF = "Desc=" + futura.getDescricao() + ", Vlr=" + futura.getValorPrevisto();
+                
+                futura.setValorPrevisto(dto.getValorPrevisto());
+                futura.setDataVencimento(vctoBase);
+                futura.setCategoria(categoria);
+                futura.setConta(contaBancaria);
+                futura.setAtualizadoPor(usuarioLogado);
+                
+                String dadosNovosF = "Desc=" + futura.getDescricao() + ", Vlr=" + futura.getValorPrevisto();
+                futura = repository.save(futura);
+                atualizadas.add(futura);
+                
+                auditLogService.registrarLog("Receita", futura.getId(), AcaoAuditLog.EDITOU, usuarioLogado, dadosAntigosF, dadosNovosF, "Alteração em lote (ESTA_E_PROXIMAS)");
+            }
+        }
+        
+        return atualizadas.stream().map(ReceitaResponseDTO::fromEntity).collect(Collectors.toList());
     }
 
     @Override

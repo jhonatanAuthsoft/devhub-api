@@ -6,6 +6,7 @@ import com.projeto.modelo.model.entity.Projeto;
 import com.projeto.modelo.model.entity.Receita;
 import com.projeto.modelo.model.enums.StatusReceita;
 import com.projeto.modelo.model.enums.TipoProjeto;
+import com.projeto.modelo.repository.ProjetoRepository;
 import com.projeto.modelo.repository.ReceitaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class BoardAnaliticoService {
 
     private final ReceitaRepository receitaRepository;
+    private final ProjetoRepository projetoRepository;
 
     private static final String[] NOMES_MESES = {
         "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -41,11 +43,13 @@ public class BoardAnaliticoService {
 
         // Estrutura de agrupamento: TipoKey -> (ClienteId -> array de 12 meses)
         Map<String, String> tipoKeyToNome = new LinkedHashMap<>();
-        // Garantir ordem preferencial: ALOCACAO, SOB_MEDIDA, HORAS, ROYALTIES
+        // Garantir ordem preferencial: ALOCACAO, SOB_MEDIDA, HORAS, ROYALTIES, SERVIDOR, REPASSE_DE_DEMANDA
         tipoKeyToNome.put("ALOCACAO", "Alocação");
         tipoKeyToNome.put("SOB_MEDIDA", "Sob Medida");
         tipoKeyToNome.put("HORAS", "Venda de Horas");
         tipoKeyToNome.put("ROYALTIES", "Royalties");
+        tipoKeyToNome.put("SERVIDOR", "Servidor");
+        tipoKeyToNome.put("REPASSE_DE_DEMANDA", "Repasse de Demanda");
 
         // Map: TipoKey -> Map<ClienteId, LinhaAcumuladora>
         Map<String, Map<UUID, LinhaClienteAcumuladora>> matriz = new LinkedHashMap<>();
@@ -53,6 +57,9 @@ public class BoardAnaliticoService {
         BigDecimal faturamentoTotalAno = BigDecimal.ZERO;
         BigDecimal[] totaisMensaisAno = new BigDecimal[12];
         Arrays.fill(totaisMensaisAno, BigDecimal.ZERO);
+
+        // Guardar conjunto de (projetoId, mesIndex) para os quais já existe Receita no banco
+        Set<String> receitasExistentes = new HashSet<>();
 
         for (Receita receita : receitasValidas) {
             // Obter Cliente
@@ -62,6 +69,12 @@ public class BoardAnaliticoService {
             }
             UUID clienteId = cliente != null ? cliente.getId() : UUID.nameUUIDFromBytes("Outros".getBytes());
             String nomeCliente = cliente != null ? cliente.getNome() : "Outros Clientes";
+
+            // Registrar se existe projeto vinculado
+            if (receita.getProjeto() != null && receita.getProjeto().getId() != null) {
+                int m = receita.getDataVencimento().getMonthValue() - 1;
+                receitasExistentes.add(receita.getProjeto().getId() + "_" + m);
+            }
 
             // Determinar Tipo de Serviço
             String tipoKey = resolverTipoKey(receita);
@@ -92,6 +105,46 @@ public class BoardAnaliticoService {
             linha.totalAno = linha.totalAno.add(valor);
         }
 
+        // Se não for somente recebidos, projetar mensalidades recorrentes para meses que ainda não têm parcelas no banco
+        if (!somenteRecebidos) {
+            List<Projeto> projetos = projetoRepository.findAll();
+            for (Projeto proj : projetos) {
+                if (proj.getValorContratoMensal() != null && proj.getValorContratoMensal().compareTo(BigDecimal.ZERO) > 0) {
+                    if (proj.getCliente() == null) continue;
+
+                    LocalDate inicio = proj.getDataInicio() != null ? proj.getDataInicio() : LocalDate.of(2020, 1, 1);
+                    LocalDate fim = proj.getDataFimProjeto();
+
+                    if (inicio.getYear() > ano) continue; // Projeto ainda não iniciou neste ano
+                    if (fim != null && fim.getYear() < ano) continue; // Projeto já finalizou em ano anterior
+
+                    int startMonth = (inicio.getYear() < ano) ? 0 : (inicio.getMonthValue() - 1);
+                    int endMonth = (fim != null && fim.getYear() == ano) ? (fim.getMonthValue() - 1) : 11;
+
+                    for (int m = startMonth; m <= endMonth; m++) {
+                        String keyExistente = proj.getId() + "_" + m;
+                        if (!receitasExistentes.contains(keyExistente)) {
+                            BigDecimal valor = proj.getValorContratoMensal();
+                            UUID clienteId = proj.getCliente().getId();
+                            String nomeCliente = proj.getCliente().getNome();
+
+                            String tipoKey = resolverTipoKeyDoProjeto(proj);
+                            String nomeExibicao = resolverNomeExibicaoDoProjeto(tipoKey, proj);
+                            tipoKeyToNome.putIfAbsent(tipoKey, nomeExibicao);
+
+                            totaisMensaisAno[m] = totaisMensaisAno[m].add(valor);
+                            faturamentoTotalAno = faturamentoTotalAno.add(valor);
+
+                            matriz.computeIfAbsent(tipoKey, k -> new LinkedHashMap<>());
+                            LinhaClienteAcumuladora linha = matriz.get(tipoKey).computeIfAbsent(clienteId, k -> new LinhaClienteAcumuladora(clienteId, nomeCliente));
+                            linha.valoresMensais[m] = linha.valoresMensais[m].add(valor);
+                            linha.totalAno = linha.totalAno.add(valor);
+                        }
+                    }
+                }
+            }
+        }
+
         // Construir Grupos no DTO
         List<BoardTipoServicoDTO.GrupoTipoServicoDTO> gruposDTO = new ArrayList<>();
 
@@ -101,7 +154,7 @@ public class BoardAnaliticoService {
 
             Map<UUID, LinhaClienteAcumuladora> clientesDoTipo = matriz.get(tKey);
             if (clientesDoTipo == null || clientesDoTipo.isEmpty()) {
-                continue; // Não exibe se zerado para manter limpo, ou inclui com 0 se preferir
+                continue;
             }
 
             BigDecimal totalValorTipo = BigDecimal.ZERO;
@@ -163,15 +216,16 @@ public class BoardAnaliticoService {
     }
 
     private String resolverTipoKey(Receita receita) {
-        // 1. Verificar se a Categoria é Royalties
         if (receita.getCategoria() != null && receita.getCategoria().getNome() != null) {
             String catNome = receita.getCategoria().getNome().toUpperCase();
             if (catNome.contains("ROYALT") || catNome.contains("SOCIEDADE")) {
                 return "ROYALTIES";
             }
+            if (catNome.contains("SERVIDOR") || catNome.contains("SERVER") || catNome.contains("HOSTING")) {
+                return "SERVIDOR";
+            }
         }
 
-        // 2. Verificar Tipo de Projeto
         if (receita.getProjeto() != null && receita.getProjeto().getTipoProjeto() != null) {
             TipoProjeto tp = receita.getProjeto().getTipoProjeto();
             switch (tp) {
@@ -183,17 +237,22 @@ public class BoardAnaliticoService {
                 case HORAS_AVULSA:
                 case VENDA_HORA:
                     return "HORAS";
+                case SERVIDOR:
+                    return "SERVIDOR";
+                case REPASSE_DE_DEMANDA:
+                    return "REPASSE_DE_DEMANDA";
                 default:
                     return tp.name();
             }
         }
 
-        // 3. Fallback por Categoria
         if (receita.getCategoria() != null && receita.getCategoria().getNome() != null) {
             String catNome = receita.getCategoria().getNome().toUpperCase();
+            if (catNome.contains("SERVIDOR") || catNome.contains("SERVER")) return "SERVIDOR";
             if (catNome.contains("ALOCAÇ") || catNome.contains("ALOCAC")) return "ALOCACAO";
             if (catNome.contains("SOB MEDIDA")) return "SOB_MEDIDA";
             if (catNome.contains("HORA")) return "HORAS";
+            if (catNome.contains("REPASSE")) return "REPASSE_DE_DEMANDA";
             return "CAT_" + receita.getCategoria().getId();
         }
 
@@ -206,6 +265,8 @@ public class BoardAnaliticoService {
             case "SOB_MEDIDA": return "Sob Medida";
             case "HORAS": return "Venda de Horas";
             case "ROYALTIES": return "Royalties";
+            case "SERVIDOR": return "Servidor";
+            case "REPASSE_DE_DEMANDA": return "Repasse de Demanda";
             case "OUTROS": return "Outros Serviços";
             default:
                 if (receita.getProjeto() != null && receita.getProjeto().getTipoProjeto() != null) {
@@ -213,6 +274,40 @@ public class BoardAnaliticoService {
                 }
                 if (receita.getCategoria() != null) {
                     return receita.getCategoria().getNome();
+                }
+                return tipoKey;
+        }
+    }
+
+    private String resolverTipoKeyDoProjeto(Projeto proj) {
+        if (proj.getTipoProjeto() != null) {
+            TipoProjeto tp = proj.getTipoProjeto();
+            switch (tp) {
+                case ALOCACAO: return "ALOCACAO";
+                case SOB_MEDIDA:
+                case SOFTWARE_SOB_MEDIDA: return "SOB_MEDIDA";
+                case HORAS_AVULSA:
+                case VENDA_HORA: return "HORAS";
+                case SERVIDOR: return "SERVIDOR";
+                case REPASSE_DE_DEMANDA: return "REPASSE_DE_DEMANDA";
+                default: return tp.name();
+            }
+        }
+        return "OUTROS";
+    }
+
+    private String resolverNomeExibicaoDoProjeto(String tipoKey, Projeto proj) {
+        switch (tipoKey) {
+            case "ALOCACAO": return "Alocação";
+            case "SOB_MEDIDA": return "Sob Medida";
+            case "HORAS": return "Venda de Horas";
+            case "ROYALTIES": return "Royalties";
+            case "SERVIDOR": return "Servidor";
+            case "REPASSE_DE_DEMANDA": return "Repasse de Demanda";
+            case "OUTROS": return "Outros Serviços";
+            default:
+                if (proj.getTipoProjeto() != null) {
+                    return proj.getTipoProjeto().getDescricao();
                 }
                 return tipoKey;
         }

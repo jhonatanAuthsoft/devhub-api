@@ -376,4 +376,59 @@ public class ReceitaServiceImp implements ReceitaService {
             auditLogService.registrarLog("Receita", r.getId(), AcaoAuditLog.EDITOU, null, "Status: PENDENTE", "Status: EM_ATRASO (Job automático do sistema)", null);
         }
     }
+
+    // Geração automática contínua para receitas recorrentes (mantém 24 meses sempre gerados no banco)
+    @Scheduled(cron = "0 0 2 * * ?") // Roda todo dia às 2:00 AM
+    @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
+    @Transactional
+    public void processarRecorrenciasAutomaticas() {
+        List<Receita> todasReceitas = repository.findAll();
+        
+        List<Receita> paisRecorrentes = todasReceitas.stream()
+                .filter(r -> r.getExcluidoEm() == null)
+                .filter(r -> r.getTipoRecorrencia() == TipoRecorrencia.RECORRENTE)
+                .filter(r -> r.getRecorrenciaPai() == null || r.getRecorrenciaPai().getId().equals(r.getId()))
+                .filter(r -> r.getProjeto() == null || r.getProjeto().getStatus() != com.projeto.modelo.model.enums.StatusProjeto.CANCELADO)
+                .collect(Collectors.toList());
+
+        LocalDate limiteHorizonte = LocalDate.now().plusMonths(24);
+
+        for (Receita pai : paisRecorrentes) {
+            List<Receita> familia = repository.findByRecorrenciaPaiId(pai.getId());
+            if (familia == null || familia.isEmpty()) {
+                familia = List.of(pai);
+            }
+
+            LocalDate maiorVencimento = familia.stream()
+                    .map(Receita::getDataVencimento)
+                    .max(LocalDate::compareTo)
+                    .orElse(pai.getDataVencimento());
+
+            LocalDate dataFimProjeto = pai.getProjeto() != null ? pai.getProjeto().getDataFimProjeto() : null;
+
+            LocalDate proximoVcto = proximoVencimento(maiorVencimento, pai.getPeriodicidade());
+            while (!proximoVcto.isAfter(limiteHorizonte)) {
+                if (dataFimProjeto != null && proximoVcto.isAfter(dataFimProjeto)) {
+                    break;
+                }
+
+                Receita novaReceita = Receita.builder()
+                        .descricao(pai.getDescricao())
+                        .valorPrevisto(pai.getValorPrevisto())
+                        .dataVencimento(proximoVcto)
+                        .categoria(pai.getCategoria())
+                        .projeto(pai.getProjeto())
+                        .conta(pai.getConta())
+                        .status(StatusReceita.PENDENTE)
+                        .tipoRecorrencia(TipoRecorrencia.RECORRENTE)
+                        .periodicidade(pai.getPeriodicidade())
+                        .recorrenciaPai(pai)
+                        .build();
+                novaReceita.setCriadoPor(pai.getCriadoPor());
+                repository.save(novaReceita);
+
+                proximoVcto = proximoVencimento(proximoVcto, pai.getPeriodicidade());
+            }
+        }
+    }
 }

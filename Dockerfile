@@ -32,7 +32,7 @@
 # ║ STAGE 1: BUILD (usando imagem Alpine para compatibilidade)             ║
 # ╚═════════════════════════════════════════════════════════════════════════╝
 
-FROM maven:3.9-eclipse-temurin-17-alpine AS build
+FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -41,13 +41,9 @@ WORKDIR /app
 # Separar pom.xml permite cache da layer de dependências.
 # Rebuild 5-10x mais rápido quando apenas código muda!
 
+ENV MAVEN_OPTS="--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED"
+
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# ─────────────────────────────────────────────────────────────────────────
-# COMPILAÇÃO: Código fonte → JAR otimizado
-# ─────────────────────────────────────────────────────────────────────────
-
 COPY src ./src
 
 ARG VERSION=0.0.1-SNAPSHOT

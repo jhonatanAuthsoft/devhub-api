@@ -72,4 +72,13 @@ public class RelatorioController {
         int anoFinal = ano != null ? ano : java.time.LocalDate.now().getYear();
         return ResponseEntity.ok(boardAnaliticoService.gerarBoardPorTipoServico(anoFinal, somenteRecebidos));
     }
+
+    @GetMapping("/board-analitico/centro-custo")
+    public ResponseEntity<com.projeto.modelo.dto.relatorio.BoardCentroCustoDTO> getBoardCentroCusto(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer ano,
+            @org.springframework.web.bind.annotation.RequestParam(required = false, defaultValue = "false") Boolean somentePagos) {
+        
+        int anoFinal = ano != null ? ano : java.time.LocalDate.now().getYear();
+        return ResponseEntity.ok(boardAnaliticoService.gerarBoardPorCentroCusto(anoFinal, somentePagos));
+    }
 }

@@ -12,6 +12,7 @@ import java.util.UUID;
 public interface DespesaRepository extends JpaRepository<Despesa, UUID>, JpaSpecificationExecutor<Despesa> {
     List<Despesa> findByRecorrenciaPaiId(UUID recorrenciaPaiId);
     List<Despesa> findByRecorrenciaPaiIdAndParcelaNumeroGreaterThanEqual(UUID recorrenciaPaiId, Integer parcelaNumero);
+    List<Despesa> findByDataVencimentoBetween(java.time.LocalDate dataInicio, java.time.LocalDate dataFim);
     long countByCategoriaId(UUID categoriaId);
     long countByContaId(UUID contaId);
 }

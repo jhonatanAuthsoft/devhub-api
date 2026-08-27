@@ -77,4 +77,55 @@ public class ServidorRequest {
     @NotNull(message = "Custo do backup diário é obrigatório")
     @DecimalMin(value = "0.00", message = "Custo deve ser maior ou igual a zero")
     private BigDecimal custoBackupDiario;
+
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public Integer getCpuNucleos() { return cpuNucleos; }
+    public void setCpuNucleos(Integer cpuNucleos) { this.cpuNucleos = cpuNucleos; }
+
+    public Integer getRamGb() { return ramGb; }
+    public void setRamGb(Integer ramGb) { this.ramGb = ramGb; }
+
+    public Integer getArmazenamentoSsdGb() { return armazenamentoSsdGb; }
+    public void setArmazenamentoSsdGb(Integer armazenamentoSsdGb) { this.armazenamentoSsdGb = armazenamentoSsdGb; }
+
+    public Integer getLarguraBandaTb() { return larguraBandaTb; }
+    public void setLarguraBandaTb(Integer larguraBandaTb) { this.larguraBandaTb = larguraBandaTb; }
+
+    public Boolean getMonitoramentoProativo() { return monitoramentoProativo; }
+    public void setMonitoramentoProativo(Boolean monitoramentoProativo) { this.monitoramentoProativo = monitoramentoProativo; }
+
+    public Boolean getBackupDiario() { return backupDiario; }
+    public void setBackupDiario(Boolean backupDiario) { this.backupDiario = backupDiario; }
+
+    public Boolean getGestaoSeguranca() { return gestaoSeguranca; }
+    public void setGestaoSeguranca(Boolean gestaoSeguranca) { this.gestaoSeguranca = gestaoSeguranca; }
+
+    public Boolean getSuporteEspecializado() { return suporteEspecializado; }
+    public void setSuporteEspecializado(Boolean suporteEspecializado) { this.suporteEspecializado = suporteEspecializado; }
+
+    public Integer getSlaTempoRespostaHoras() { return slaTempoRespostaHoras; }
+    public void setSlaTempoRespostaHoras(Integer slaTempoRespostaHoras) { this.slaTempoRespostaHoras = slaTempoRespostaHoras; }
+
+    public BigDecimal getPlanoDoisAnosValor() { return planoDoisAnosValor; }
+    public void setPlanoDoisAnosValor(BigDecimal planoDoisAnosValor) { this.planoDoisAnosValor = planoDoisAnosValor; }
+
+    public BigDecimal getPlanoUmAnoValor() { return planoUmAnoValor; }
+    public void setPlanoUmAnoValor(BigDecimal planoUmAnoValor) { this.planoUmAnoValor = planoUmAnoValor; }
+
+    public BigDecimal getPlanoSemFidelidadeValor() { return planoSemFidelidadeValor; }
+    public void setPlanoSemFidelidadeValor(BigDecimal planoSemFidelidadeValor) { this.planoSemFidelidadeValor = planoSemFidelidadeValor; }
+
+    public BigDecimal getCustoServidor() { return custoServidor; }
+    public void setCustoServidor(BigDecimal custoServidor) { this.custoServidor = custoServidor; }
+
+    public BigDecimal getCustoBackupDiario() { return custoBackupDiario; }
+    public void setCustoBackupDiario(BigDecimal custoBackupDiario) { this.custoBackupDiario = custoBackupDiario; }
 }

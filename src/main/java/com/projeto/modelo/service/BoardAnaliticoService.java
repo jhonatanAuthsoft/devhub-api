@@ -1,11 +1,14 @@
-package com.projeto.modelo.service;
-
+import com.projeto.modelo.dto.relatorio.BoardCentroCustoDTO;
 import com.projeto.modelo.dto.relatorio.BoardTipoServicoDTO;
+import com.projeto.modelo.model.entity.Categoria;
 import com.projeto.modelo.model.entity.Cliente;
+import com.projeto.modelo.model.entity.Despesa;
 import com.projeto.modelo.model.entity.Projeto;
 import com.projeto.modelo.model.entity.Receita;
+import com.projeto.modelo.model.enums.StatusDespesa;
 import com.projeto.modelo.model.enums.StatusReceita;
 import com.projeto.modelo.model.enums.TipoProjeto;
+import com.projeto.modelo.repository.DespesaRepository;
 import com.projeto.modelo.repository.ProjetoRepository;
 import com.projeto.modelo.repository.ReceitaRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,7 @@ public class BoardAnaliticoService {
 
     private final ReceitaRepository receitaRepository;
     private final ProjetoRepository projetoRepository;
+    private final DespesaRepository despesaRepository;
 
     private static final String[] NOMES_MESES = {
         "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -213,6 +217,138 @@ public class BoardAnaliticoService {
                 .totaisMensais(totaisMensaisDTO)
                 .gruposTipo(gruposDTO)
                 .build();
+    }
+
+    public BoardCentroCustoDTO gerarBoardPorCentroCusto(int ano, boolean somentePagos) {
+        LocalDate dataInicio = LocalDate.of(ano, 1, 1);
+        LocalDate dataFim = LocalDate.of(ano, 12, 31);
+
+        List<Despesa> despesas = despesaRepository.findByDataVencimentoBetween(dataInicio, dataFim);
+
+        List<Despesa> despesasValidas = despesas.stream()
+                .filter(d -> d.getStatus() != StatusDespesa.CANCELADA)
+                .filter(d -> !somentePagos || d.getStatus() == StatusDespesa.PAGO)
+                .collect(Collectors.toList());
+
+        // Estruturas de agrupamento:
+        // CentroCusto (Nome/Id) -> (CategoriaId/Nome -> valores por mês)
+        Map<String, String> centroCustoNomes = new LinkedHashMap<>(); // Key -> NomeExibicao
+        Map<String, Map<String, LinhaDespesaAcumuladora>> matriz = new LinkedHashMap<>();
+
+        BigDecimal despesaTotalAno = BigDecimal.ZERO;
+        BigDecimal[] totaisMensaisAno = new BigDecimal[12];
+        Arrays.fill(totaisMensaisAno, BigDecimal.ZERO);
+
+        for (Despesa despesa : despesasValidas) {
+            Categoria cat = despesa.getCategoria();
+            Categoria pai = (cat != null && cat.getPai() != null) ? cat.getPai() : cat;
+
+            String centroCustoKey = pai != null ? pai.getId().toString() : "SEM_CENTRO";
+            String centroCustoNome = pai != null ? pai.getNome() : "Outros / Sem Centro";
+            centroCustoNomes.putIfAbsent(centroCustoKey, centroCustoNome);
+
+            String catIdKey = cat != null ? cat.getId().toString() : "SEM_CAT";
+            String catNome = cat != null ? cat.getNome() : "Geral";
+
+            BigDecimal valor = BigDecimal.ZERO;
+            if (despesa.getStatus() == StatusDespesa.PAGO && despesa.getValorPago() != null) {
+                valor = despesa.getValorPago();
+            } else if (despesa.getValorPrevisto() != null) {
+                valor = despesa.getValorPrevisto();
+            }
+
+            int mesIndex = despesa.getDataVencimento().getMonthValue() - 1;
+            if (mesIndex >= 0 && mesIndex < 12) {
+                totaisMensaisAno[mesIndex] = totaisMensaisAno[mesIndex].add(valor);
+            }
+            despesaTotalAno = despesaTotalAno.add(valor);
+
+            matriz.computeIfAbsent(centroCustoKey, k -> new LinkedHashMap<>());
+            LinhaDespesaAcumuladora linha = matriz.get(centroCustoKey).computeIfAbsent(catIdKey, k -> new LinhaDespesaAcumuladora(cat != null ? cat.getId() : null, catNome));
+            if (mesIndex >= 0 && mesIndex < 12) {
+                linha.valoresMensais[mesIndex] = linha.valoresMensais[mesIndex].add(valor);
+            }
+            linha.totalAno = linha.totalAno.add(valor);
+        }
+
+        List<BoardCentroCustoDTO.GrupoCentroCustoDTO> gruposDTO = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : centroCustoNomes.entrySet()) {
+            String cKey = entry.getKey();
+            String cNome = entry.getValue();
+
+            Map<String, LinhaDespesaAcumuladora> subCats = matriz.get(cKey);
+            if (subCats == null || subCats.isEmpty()) continue;
+
+            BigDecimal totalValorCentro = BigDecimal.ZERO;
+            BigDecimal[] mensaisCentro = new BigDecimal[12];
+            Arrays.fill(mensaisCentro, BigDecimal.ZERO);
+            List<BoardCentroCustoDTO.LinhaDespesaBoardDTO> despesasDTO = new ArrayList<>();
+
+            for (LinhaDespesaAcumuladora acum : subCats.values()) {
+                totalValorCentro = totalValorCentro.add(acum.totalAno);
+                for (int m = 0; m < 12; m++) {
+                    mensaisCentro[m] = mensaisCentro[m].add(acum.valoresMensais[m]);
+                }
+
+                BigDecimal pctShareSubCat = calcularPorcentagem(acum.totalAno, despesaTotalAno);
+
+                despesasDTO.add(BoardCentroCustoDTO.LinhaDespesaBoardDTO.builder()
+                        .categoriaId(acum.categoriaId)
+                        .nomeCategoria(acum.nomeCategoria)
+                        .valoresMensais(Arrays.asList(acum.valoresMensais))
+                        .totalDespesaAno(acum.totalAno)
+                        .percentualShare(pctShareSubCat)
+                        .build());
+            }
+
+            despesasDTO.sort(Comparator.comparing(BoardCentroCustoDTO.LinhaDespesaBoardDTO::getNomeCategoria));
+            BigDecimal pctCentro = calcularPorcentagem(totalValorCentro, despesaTotalAno);
+
+            UUID parentUuid = null;
+            try { parentUuid = UUID.fromString(cKey); } catch (Exception e) {}
+
+            gruposDTO.add(BoardCentroCustoDTO.GrupoCentroCustoDTO.builder()
+                    .categoriaPaiId(parentUuid)
+                    .nomeCentroCusto(cNome)
+                    .totalValorCentroCusto(totalValorCentro)
+                    .percentualDespesaTipo(pctCentro)
+                    .totaisMensaisCentroCusto(Arrays.asList(mensaisCentro))
+                    .despesas(despesasDTO)
+                    .build());
+        }
+
+        List<BoardCentroCustoDTO.TotalMensalDTO> totaisMensaisDTO = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            BigDecimal valMes = totaisMensaisAno[i];
+            BigDecimal pctMes = calcularPorcentagem(valMes, despesaTotalAno);
+            totaisMensaisDTO.add(BoardCentroCustoDTO.TotalMensalDTO.builder()
+                    .mes(i + 1)
+                    .nomeMes(NOMES_MESES[i])
+                    .valorTotal(valMes)
+                    .percentualAno(pctMes)
+                    .build());
+        }
+
+        return BoardCentroCustoDTO.builder()
+                .ano(ano)
+                .despesaTotalAno(despesaTotalAno)
+                .totaisMensais(totaisMensaisDTO)
+                .gruposCentroCusto(gruposDTO)
+                .build();
+    }
+
+    private static class LinhaDespesaAcumuladora {
+        UUID categoriaId;
+        String nomeCategoria;
+        BigDecimal[] valoresMensais = new BigDecimal[12];
+        BigDecimal totalAno = BigDecimal.ZERO;
+
+        LinhaDespesaAcumuladora(UUID categoriaId, String nomeCategoria) {
+            this.categoriaId = categoriaId;
+            this.nomeCategoria = nomeCategoria;
+            Arrays.fill(valoresMensais, BigDecimal.ZERO);
+        }
     }
 
     private String resolverTipoKey(Receita receita) {

@@ -1,3 +1,5 @@
+package com.projeto.modelo.service;
+
 import com.projeto.modelo.dto.relatorio.BoardCentroCustoDTO;
 import com.projeto.modelo.dto.relatorio.BoardTipoServicoDTO;
 import com.projeto.modelo.model.entity.Categoria;
